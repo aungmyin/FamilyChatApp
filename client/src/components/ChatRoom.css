@@ -97,6 +97,13 @@
   font-weight: 600;
 }
 
+.room-button.family-btn {
+  background: var(--primary-blue);
+  color: var(--white);
+  font-weight: 600;
+  margin-right: 8px;
+}
+
 .unread-badge {
   min-width: 24px;
   height: 24px;

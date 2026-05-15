@@ -402,7 +402,7 @@ export default function ChatRoom() {
             <div key={room} className="room-button-wrapper">
               <button
                 onClick={() => setCurrentRoom(room)}
-                className={`room-button ${currentRoom === room ? 'active' : ''}`}
+                className={`room-button ${room === 'family' ? 'family-btn' : ''} ${currentRoom === room ? 'active' : ''}`}
               >
                 # {room}
               </button>
