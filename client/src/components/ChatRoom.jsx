@@ -676,7 +676,7 @@ export default function ChatRoom() {
             onVoiceCall={(targetUserId) => {
               const user = onlineUsers.find((u) => u.userId === targetUserId);
               if (user) {
-                setCallTarget({ socketId: user.socketId, username: user.username });
+                setCallTarget({ socketId: user.socketId, username: user.username, isVideo: false });
               }
             }}
             onVideoCall={(targetUserId) => {
