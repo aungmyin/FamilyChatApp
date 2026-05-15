@@ -505,12 +505,15 @@ export default function ChatRoom() {
             ))}
 
             {/* Opened DMs */}
-            {openedDMs.map((dm) => (
+            {openedDMs.map((dm) => {
+              const isOnline = onlineUsers.some((user) => user.userId === dm.userId);
+              return (
               <div key={dm.userId} className="dm-tab-wrapper">
                 <button
                   onClick={() => setActiveChat(dm.userId)}
                   className={`dm-tab ${activeChat === dm.userId ? 'active' : ''}`}
                 >
+                  {isOnline && <span className="online-indicator">🟢</span>}
                   {dm.username}
                 </button>
                 <button

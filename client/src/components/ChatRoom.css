@@ -784,6 +784,11 @@
       border-color: var(--primary-blue);
     }
 
+    .online-indicator {
+      margin-right: 4px;
+      font-size: 12px;
+    }
+
     .dm-close-btn {
       position: absolute;
       right: 6px;
