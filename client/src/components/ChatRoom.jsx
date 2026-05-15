@@ -5,7 +5,7 @@ import { AuthContext } from '../context/AuthContext';
 import VideoCall from './VideoCall';
 import VoiceCall from './VoiceCall';
 import DirectMessage from './DirectMessage';
-import cameraIcon from '../assets/camera-icon.png';
+import CameraIcon from './CameraIcon';
 import './ChatRoom.css';
 
 const ROOMS = ['family'];
@@ -464,7 +464,7 @@ export default function ChatRoom() {
                         className="call-user-button video"
                         title={`Video call with ${user.username}`}
                       >
-                        <img src={cameraIcon} alt="Video call" className="camera-icon" />
+                        <CameraIcon size={16} color="currentColor" />
                       </button>
                     </div>
                   </div>
@@ -549,7 +549,7 @@ export default function ChatRoom() {
               📞
             </button>
             <button className="header-button" title="Video call">
-              <img src={cameraIcon} alt="Video call" className="camera-icon-small" />
+              <CameraIcon size={18} color="currentColor" />
             </button>
             <button className="header-button" title="Info">
               ℹ️
