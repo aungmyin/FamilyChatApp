@@ -76,13 +76,13 @@ const onlineUsers = new Map(); // userId -> { socketId, username }
 const userCalls = new Map(); // userId -> targetUserId (track active calls)
 
 // Helper function to broadcast online users to a room
-const broadcastOnlineUsers = (room) => {
-  const roomUsers = Array.from(onlineUsers.entries()).map(([userId, user]) => ({
+const broadcastOnlineUsers = () => {
+  const allUsers = Array.from(onlineUsers.entries()).map(([userId, user]) => ({
     userId,
     username: user.username,
     socketId: user.socketId,
   }));
-  io.to(room).emit('online_users', roomUsers);
+  io.emit('online_users', allUsers);
 };
 
 io.on('connection', (socket) => {
@@ -93,6 +93,7 @@ io.on('connection', (socket) => {
 
   // Add user to online users
   onlineUsers.set(userId, { socketId: socket.id, username });
+  broadcastOnlineUsers();
 
   socket.on('join_room', async ({ room }) => {
     try {
@@ -124,7 +125,7 @@ io.on('connection', (socket) => {
       });
 
       // Broadcast online users
-      broadcastOnlineUsers(room);
+      broadcastOnlineUsers();
     } catch (error) {
       console.error('join_room error:', error);
       socket.emit('error', { message: 'Failed to join room' });
@@ -371,7 +372,7 @@ io.on('connection', (socket) => {
 
     if (socket.data.room) {
       socket.to(socket.data.room).emit('user_left', { username });
-      broadcastOnlineUsers(socket.data.room);
+      broadcastOnlineUsers();
     }
   });
 });
