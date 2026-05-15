@@ -192,3 +192,4 @@ Three fixed rooms:
 ## License
 
 Private project for family use.
+# FamilyChatApp
