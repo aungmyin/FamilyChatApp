@@ -82,6 +82,7 @@ const broadcastOnlineUsers = () => {
     username: user.username,
     socketId: user.socketId,
   }));
+  console.log('Broadcasting online users:', allUsers);
   io.emit('online_users', allUsers);
 };
 
@@ -93,6 +94,7 @@ io.on('connection', (socket) => {
 
   // Add user to online users
   onlineUsers.set(userId, { socketId: socket.id, username });
+  console.log(`User ${username} added to online users. Total online: ${onlineUsers.size}`);
   broadcastOnlineUsers();
 
   socket.on('join_room', async ({ room }) => {

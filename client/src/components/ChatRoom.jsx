@@ -146,6 +146,7 @@ export default function ChatRoom() {
     });
 
     newSocket.on('online_users', (users) => {
+      console.log('Received online_users:', users);
       setOnlineUsers(users);
     });
 
