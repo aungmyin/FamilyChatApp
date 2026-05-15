@@ -308,6 +308,7 @@ io.on('connection', (socket) => {
 
         // Notification badge
         io.to(recipient.socketId).emit('dm_notification', {
+          fromUserId: userId,
           fromUsername: username,
           conversationId,
         });

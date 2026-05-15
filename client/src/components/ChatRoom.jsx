@@ -193,11 +193,20 @@ export default function ChatRoom() {
       ]);
     });
 
-    newSocket.on('dm_notification', ({ fromUsername, conversationId }) => {
+    newSocket.on('dm_notification', ({ fromUserId, fromUsername, conversationId }) => {
+      // Add to unread counts
       setDmUnreadCounts((prev) => ({
         ...prev,
         [conversationId]: (prev[conversationId] || 0) + 1,
       }));
+      // Automatically add to openedDMs if not already there
+      setOpenedDMs((prev) => {
+        const exists = prev.some((dm) => dm.userId === fromUserId);
+        if (!exists) {
+          return [...prev, { userId: fromUserId, username: fromUsername }];
+        }
+        return prev;
+      });
     });
 
     setSocket(newSocket);
