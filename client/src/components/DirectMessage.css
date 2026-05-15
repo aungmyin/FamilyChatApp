@@ -191,7 +191,8 @@
   .direct-message-panel {
     max-width: 100%;
     width: 100%;
-    height: 100vh;
+    height: 100%;
+    max-height: calc(100vh - 50px);
     position: fixed;
     left: 0;
     top: 0;

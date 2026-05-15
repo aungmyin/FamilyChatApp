@@ -613,7 +613,7 @@
 
   .chat-main {
     width: 100%;
-    height: calc(100vh - 60px);
+    max-height: calc(100vh - 120px);
     display: flex;
     flex-direction: column;
   }
