@@ -156,6 +156,27 @@
   display: flex;
   gap: 4px;
   margin-right: 8px;
+  align-items: center;
+}
+
+.dm-button-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.dm-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #e74c3c;
+  color: white;
+  font-size: 10px;
+  padding: 2px 4px;
+  border-radius: 50%;
+  min-width: 16px;
+  text-align: center;
+  font-weight: bold;
 }
 
 .call-user-button {
@@ -169,6 +190,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.call-user-button.dm:hover {
+  background: #0084ff;
+  transform: scale(1.1);
 }
 
 .call-user-button.voice:hover {

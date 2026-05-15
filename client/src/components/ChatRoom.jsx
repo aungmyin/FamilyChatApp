@@ -4,13 +4,14 @@ import { io } from 'socket.io-client';
 import { AuthContext } from '../context/AuthContext';
 import VideoCall from './VideoCall';
 import VoiceCall from './VoiceCall';
+import DirectMessage from './DirectMessage';
 import './ChatRoom.css';
 
 const ROOMS = ['general', 'family', 'random'];
 const MESSAGE_STORAGE_KEY = 'pendingMessages';
 
 export default function ChatRoom() {
-  const { token, username, logout } = useContext(AuthContext);
+  const { token, userId, username, logout } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const [socket, setSocket] = useState(null);
@@ -28,7 +29,9 @@ export default function ChatRoom() {
   const [incomingCall, setIncomingCall] = useState(null);
   const [voiceCallTarget, setVoiceCallTarget] = useState(null);
   const [incomingVoiceCall, setIncomingVoiceCall] = useState(null);
+  const [dmTarget, setDmTarget] = useState(null);
   const [unreadCounts, setUnreadCounts] = useState({ general: 0, family: 0, random: 0 });
+  const [dmUnreadCounts, setDmUnreadCounts] = useState({});
 
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
@@ -185,6 +188,13 @@ export default function ChatRoom() {
       ]);
     });
 
+    newSocket.on('dm_notification', ({ fromUsername, conversationId }) => {
+      setDmUnreadCounts((prev) => ({
+        ...prev,
+        [conversationId]: (prev[conversationId] || 0) + 1,
+      }));
+    });
+
     setSocket(newSocket);
 
     return () => {
@@ -204,6 +214,7 @@ export default function ChatRoom() {
       newSocket.off('error');
       newSocket.off('call_offer');
       newSocket.off('call_ended');
+      newSocket.off('dm_notification');
       newSocket.disconnect();
     };
   }, [token, navigate]);
@@ -304,6 +315,15 @@ export default function ChatRoom() {
 
   return (
     <>
+      {dmTarget && (
+        <DirectMessage
+          socket={socket}
+          targetUserId={dmTarget.userId}
+          targetUsername={dmTarget.username}
+          onClose={() => setDmTarget(null)}
+          currentUserId={userId}
+        />
+      )}
       {voiceCallTarget && (
         <VoiceCall
           socket={socket}
@@ -360,30 +380,50 @@ export default function ChatRoom() {
             {onlineUsers.length === 0 ? (
               <p className="empty-text">No one online</p>
             ) : (
-              onlineUsers.map((user) => (
-                <div key={user.socketId} className="user-item-container">
-                  <div className="user-item">
-                    <span className="online-indicator"></span>
-                    <span className="user-name">{user.username}</span>
+              onlineUsers.map((user) => {
+                const conversationId = [userId, user.userId].sort().join('_');
+                const unreadDMs = dmUnreadCounts[conversationId] || 0;
+                return (
+                  <div key={user.socketId} className="user-item-container">
+                    <div className="user-item">
+                      <span className="online-indicator"></span>
+                      <span className="user-name">{user.username}</span>
+                    </div>
+                    <div className="call-buttons-group">
+                      <div className="dm-button-wrapper">
+                        <button
+                          onClick={() => {
+                            setDmTarget({ userId: user.userId, username: user.username });
+                            setDmUnreadCounts((prev) => ({
+                              ...prev,
+                              [conversationId]: 0,
+                            }));
+                          }}
+                          className="call-user-button dm"
+                          title={`Chat with ${user.username}`}
+                        >
+                          💬
+                        </button>
+                        {unreadDMs > 0 && <span className="dm-badge">{unreadDMs}</span>}
+                      </div>
+                      <button
+                        onClick={() => setVoiceCallTarget({ socketId: user.socketId, username: user.username })}
+                        className="call-user-button voice"
+                        title={`Voice call with ${user.username}`}
+                      >
+                        📞
+                      </button>
+                      <button
+                        onClick={() => setCallTarget({ socketId: user.socketId, username: user.username })}
+                        className="call-user-button video"
+                        title={`Video call with ${user.username}`}
+                      >
+                        💻
+                      </button>
+                    </div>
                   </div>
-                  <div className="call-buttons-group">
-                    <button
-                      onClick={() => setVoiceCallTarget({ socketId: user.socketId, username: user.username })}
-                      className="call-user-button voice"
-                      title={`Voice call with ${user.username}`}
-                    >
-                      📞
-                    </button>
-                    <button
-                      onClick={() => setCallTarget({ socketId: user.socketId, username: user.username })}
-                      className="call-user-button video"
-                      title={`Video call with ${user.username}`}
-                    >
-                      💻
-                    </button>
-                  </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>

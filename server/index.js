@@ -77,7 +77,8 @@ const userCalls = new Map(); // userId -> targetUserId (track active calls)
 
 // Helper function to broadcast online users to a room
 const broadcastOnlineUsers = (room) => {
-  const roomUsers = Array.from(onlineUsers.values()).map((user) => ({
+  const roomUsers = Array.from(onlineUsers.entries()).map(([userId, user]) => ({
+    userId,
     username: user.username,
     socketId: user.socketId,
   }));
@@ -269,6 +270,95 @@ io.on('connection', (socket) => {
   socket.on('call_ended', ({ targetUsername }) => {
     if (socket.data.room) {
       socket.to(socket.data.room).emit('call_ended', { targetUsername });
+    }
+  });
+
+  // Direct Messages
+  socket.on('send_dm', async ({ recipientId, message, clientMessageId }) => {
+    try {
+      if (!recipientId || !message.trim()) return;
+
+      const recipient = onlineUsers.get(recipientId);
+      const conversationId = [userId, recipientId].sort().join('_');
+
+      // Save to DB
+      const msg = new Message({
+        room: `dm_${conversationId}`,
+        author: username,
+        authorId: userId,
+        message: message.trim(),
+        clientMessageId,
+        isDM: true,
+      });
+      await msg.save();
+
+      // Ack to sender
+      socket.emit('dm_ack', { id: msg._id, clientMessageId });
+
+      // Send to recipient if online
+      if (recipient) {
+        io.to(recipient.socketId).emit('receive_dm', {
+          id: msg._id,
+          conversationId,
+          author: username,
+          authorId: userId,
+          message: msg.message,
+          time: msg.time,
+        });
+
+        // Notification badge
+        io.to(recipient.socketId).emit('dm_notification', {
+          fromUsername: username,
+          conversationId,
+        });
+      }
+    } catch (err) {
+      console.error('send_dm error:', err);
+      socket.emit('error', { message: 'Failed to send message' });
+    }
+  });
+
+  socket.on('load_dm_history', async ({ conversationId }) => {
+    try {
+      const messages = await Message.find({ room: `dm_${conversationId}`, isDM: true })
+        .sort({ time: -1 })
+        .limit(20)
+        .lean()
+        .exec();
+      socket.emit('dm_history', messages.reverse());
+    } catch (err) {
+      console.error('load_dm_history error:', err);
+    }
+  });
+
+  socket.on('load_more_dm', async ({ conversationId, before }) => {
+    try {
+      const messages = await Message.find({
+        room: `dm_${conversationId}`,
+        isDM: true,
+        time: { $lt: new Date(before) },
+      })
+        .sort({ time: -1 })
+        .limit(20)
+        .lean()
+        .exec();
+      socket.emit('dm_older_messages', messages.reverse());
+    } catch (err) {
+      console.error('load_more_dm error:', err);
+    }
+  });
+
+  socket.on('dm_typing', ({ recipientId }) => {
+    const recipient = onlineUsers.get(recipientId);
+    if (recipient) {
+      io.to(recipient.socketId).emit('dm_user_typing', username);
+    }
+  });
+
+  socket.on('dm_stop_typing', ({ recipientId }) => {
+    const recipient = onlineUsers.get(recipientId);
+    if (recipient) {
+      io.to(recipient.socketId).emit('dm_user_stop_typing', username);
     }
   });
 

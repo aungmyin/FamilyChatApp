@@ -5,7 +5,10 @@ const MessageSchema = new mongoose.Schema(
     room: {
       type: String,
       required: true,
-      enum: ['general', 'family', 'random'],
+    },
+    isDM: {
+      type: Boolean,
+      default: false,
     },
     author: {
       type: String,
