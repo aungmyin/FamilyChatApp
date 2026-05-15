@@ -19,6 +19,8 @@ export default function ChatRoom() {
   const [messages, setMessages] = useState([]);
   const [messageText, setMessageText] = useState('');
   const [onlineUsers, setOnlineUsers] = useState([]);
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
   const [typingUsers, setTypingUsers] = useState(new Set());
   const [isConnected, isConnectedRef] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState('connecting');
@@ -313,6 +315,28 @@ export default function ChatRoom() {
     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  // Swipe handlers for room navigation on mobile
+  const handleTouchStart = (e) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = (e) => {
+    setTouchEnd(e.changedTouches[0].clientX);
+    if (!touchStart || !e.changedTouches[0].clientX) return;
+
+    const distance = touchStart - e.changedTouches[0].clientX;
+    const minSwipe = 50;
+    const roomIndex = ROOMS.indexOf(currentRoom);
+
+    if (distance > minSwipe && roomIndex < ROOMS.length - 1) {
+      // Swiped left - next room
+      setCurrentRoom(ROOMS[roomIndex + 1]);
+    } else if (distance < -minSwipe && roomIndex > 0) {
+      // Swiped right - previous room
+      setCurrentRoom(ROOMS[roomIndex - 1]);
+    }
+  };
+
   return (
     <>
       {dmTarget && (
@@ -430,7 +454,7 @@ export default function ChatRoom() {
       </div>
 
       {/* Main Chat Area */}
-      <div className="chat-main">
+      <div className="chat-main" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
         {/* Header */}
         <div className="chat-header">
           <div className="header-left">
