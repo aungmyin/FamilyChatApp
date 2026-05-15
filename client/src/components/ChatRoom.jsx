@@ -485,7 +485,7 @@ export default function ChatRoom() {
               <button
                 key={room}
                 onClick={() => setActiveChat(room)}
-                className={`room-tab ${activeChat === room ? 'active' : ''}`}
+                className={`room-tab ${room === 'family' ? 'family-btn' : ''} ${activeChat === room ? 'active' : ''}`}
               >
                 # {room}
               </button>

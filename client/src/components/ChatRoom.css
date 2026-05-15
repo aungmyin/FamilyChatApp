@@ -771,6 +771,13 @@
       border-color: var(--primary-blue);
     }
 
+    .room-tab.family-btn {
+      background: var(--primary-blue);
+      color: var(--white);
+      border-color: var(--primary-blue);
+      margin-right: 8px;
+    }
+
     .dm-tab-wrapper {
       display: flex;
       align-items: center;
