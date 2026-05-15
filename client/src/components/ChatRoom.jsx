@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import { AuthContext } from '../context/AuthContext';
 import VideoCall from './VideoCall';
+import VoiceCall from './VoiceCall';
 import './ChatRoom.css';
 
 const ROOMS = ['general', 'family', 'random'];
@@ -25,6 +26,8 @@ export default function ChatRoom() {
   const [hasMore, setHasMore] = useState(true);
   const [callTarget, setCallTarget] = useState(null);
   const [incomingCall, setIncomingCall] = useState(null);
+  const [voiceCallTarget, setVoiceCallTarget] = useState(null);
+  const [incomingVoiceCall, setIncomingVoiceCall] = useState(null);
   const [unreadCounts, setUnreadCounts] = useState({ general: 0, family: 0, random: 0 });
 
   const messagesEndRef = useRef(null);
@@ -301,6 +304,15 @@ export default function ChatRoom() {
 
   return (
     <>
+      {voiceCallTarget && (
+        <VoiceCall
+          socket={socket}
+          targetSocketId={voiceCallTarget.socketId}
+          targetUsername={voiceCallTarget.username}
+          onClose={() => setVoiceCallTarget(null)}
+          incomingCall={voiceCallTarget.isIncoming ? { socketId: voiceCallTarget.socketId, username: voiceCallTarget.username, offer: voiceCallTarget.offer } : null}
+        />
+      )}
       {callTarget && (
         <VideoCall
           socket={socket}
@@ -354,13 +366,22 @@ export default function ChatRoom() {
                     <span className="online-indicator"></span>
                     <span className="user-name">{user.username}</span>
                   </div>
-                  <button
-                    onClick={() => setCallTarget({ socketId: user.socketId, username: user.username })}
-                    className="call-user-button"
-                    title={`Call ${user.username}`}
-                  >
-                    📞
-                  </button>
+                  <div className="call-buttons-group">
+                    <button
+                      onClick={() => setVoiceCallTarget({ socketId: user.socketId, username: user.username })}
+                      className="call-user-button voice"
+                      title={`Voice call with ${user.username}`}
+                    >
+                      📞
+                    </button>
+                    <button
+                      onClick={() => setCallTarget({ socketId: user.socketId, username: user.username })}
+                      className="call-user-button video"
+                      title={`Video call with ${user.username}`}
+                    >
+                      💻
+                    </button>
+                  </div>
                 </div>
               ))
             )}

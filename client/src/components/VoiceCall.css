@@ -1,0 +1,181 @@
+.voice-call-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+.voice-call-content {
+  background: white;
+  border-radius: 20px;
+  padding: 40px;
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.caller-info {
+  margin-bottom: 30px;
+}
+
+.caller-avatar {
+  font-size: 80px;
+  margin-bottom: 20px;
+}
+
+.caller-name {
+  font-size: 28px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0 0 10px 0;
+}
+
+.caller-details {
+  margin-top: 15px;
+}
+
+.call-status {
+  font-size: 16px;
+  color: #666;
+  font-weight: 500;
+  animation: pulse 1s infinite;
+}
+
+.call-duration {
+  font-size: 20px;
+  color: #0084ff;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.call-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+.button-group {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.call-button {
+  padding: 14px 28px;
+  border: none;
+  border-radius: 50px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.start-call {
+  background: #31a24c;
+  color: white;
+  width: 100%;
+}
+
+.start-call:hover {
+  background: #2a8a40;
+  transform: scale(1.02);
+}
+
+.accept-call {
+  background: #31a24c;
+  color: white;
+  flex: 1;
+}
+
+.accept-call:hover {
+  background: #2a8a40;
+}
+
+.decline-call {
+  background: #e74c3c;
+  color: white;
+  flex: 1;
+}
+
+.decline-call:hover {
+  background: #c0392b;
+}
+
+.end-call {
+  background: #e74c3c;
+  color: white;
+  width: 100%;
+}
+
+.end-call:hover {
+  background: #c0392b;
+  transform: scale(1.02);
+}
+
+.call-error {
+  background: #fee;
+  color: #c00;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.close-button {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+@media (max-width: 480px) {
+  .voice-call-content {
+    padding: 30px 20px;
+  }
+
+  .caller-avatar {
+    font-size: 60px;
+  }
+
+  .caller-name {
+    font-size: 24px;
+  }
+
+  .call-button {
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+}
