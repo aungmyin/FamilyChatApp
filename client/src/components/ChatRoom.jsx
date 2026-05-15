@@ -21,6 +21,7 @@ export default function ChatRoom() {
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
+  const [mobileTab, setMobileTab] = useState('chat'); // 'chat' or 'online'
   const [typingUsers, setTypingUsers] = useState(new Set());
   const [isConnected, isConnectedRef] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState('connecting');
@@ -379,8 +380,24 @@ export default function ChatRoom() {
           </button>
         </div>
 
+        {/* Mobile tabs */}
+        <div className="mobile-tabs">
+          <button
+            className={`mobile-tab-button ${mobileTab === 'chat' ? 'active' : ''}`}
+            onClick={() => setMobileTab('chat')}
+          >
+            Rooms
+          </button>
+          <button
+            className={`mobile-tab-button ${mobileTab === 'online' ? 'active' : ''}`}
+            onClick={() => setMobileTab('online')}
+          >
+            Online
+          </button>
+        </div>
+
         {/* Rooms */}
-        <div className="rooms-section">
+        <div className={`rooms-section mobile-panel ${mobileTab === 'chat' ? 'active' : ''}`}>
           <h3 className="section-title">Rooms</h3>
           {ROOMS.map((room) => (
             <div key={room} className="room-button-wrapper">
@@ -398,7 +415,7 @@ export default function ChatRoom() {
         </div>
 
         {/* Online Users */}
-        <div className="online-section">
+        <div className={`online-section mobile-panel ${mobileTab === 'online' ? 'active' : ''}`}>
           <h3 className="section-title">Online</h3>
           <div className="users-list">
             {onlineUsers.filter((user) => user.userId !== userId).length === 0 ? (

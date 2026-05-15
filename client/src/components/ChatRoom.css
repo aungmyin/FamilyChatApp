@@ -666,4 +666,37 @@
     padding: 8px 6px;
     font-size: 18px;
   }
+
+  /* Mobile tab navigation */
+  .mobile-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border-gray);
+    background: var(--white);
+  }
+
+  .mobile-tab-button {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--text-light);
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+  }
+
+  .mobile-tab-button.active {
+    color: var(--primary-blue);
+    border-bottom-color: var(--primary-blue);
+  }
+
+  .mobile-panel {
+    display: none;
+  }
+
+  .mobile-panel.active {
+    display: block;
+  }
 }
