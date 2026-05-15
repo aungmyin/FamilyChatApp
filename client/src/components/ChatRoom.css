@@ -789,6 +789,38 @@
       font-size: 12px;
     }
 
+    .online-users-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-light);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-left: 0;
+    }
+
+    .user-tab {
+      padding: 8px 14px;
+      background: var(--white);
+      border: 1px solid var(--border-gray);
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-dark);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .user-tab:hover {
+      background: var(--light-gray);
+    }
+
+    .user-tab.active {
+      background: var(--primary-blue);
+      color: var(--white);
+      border-color: var(--primary-blue);
+    }
+
     .dm-close-btn {
       position: absolute;
       right: 6px;

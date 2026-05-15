@@ -530,6 +530,35 @@ export default function ChatRoom() {
                 </button>
               </div>
             ))}
+
+            {/* Online Users */}
+            {onlineUsers.length > 0 && (
+              <>
+                <div className="online-users-label">ONLINE</div>
+                {onlineUsers.map((user) => {
+                  const isAlreadyOpened = openedDMs.some((dm) => dm.userId === user.userId);
+                  if (isAlreadyOpened) return null;
+                  return (
+                    <button
+                      key={user.userId}
+                      onClick={() => {
+                        setOpenedDMs((prev) => {
+                          const exists = prev.some((dm) => dm.userId === user.userId);
+                          if (!exists) {
+                            return [...prev, { userId: user.userId, username: user.username }];
+                          }
+                          return prev;
+                        });
+                        setActiveChat(user.userId);
+                      }}
+                      className={`user-tab ${activeChat === user.userId ? 'active' : ''}`}
+                    >
+                      🟢 {user.username}
+                    </button>
+                  );
+                })}
+              </>
+            )}
           </div>
         </div>
 
