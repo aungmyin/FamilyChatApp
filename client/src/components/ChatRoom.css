@@ -220,6 +220,12 @@
   object-fit: contain;
 }
 
+.camera-icon-small {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
 .online-indicator {
   width: 10px;
   height: 10px;

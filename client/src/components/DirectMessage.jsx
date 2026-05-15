@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import cameraIcon from '../assets/camera-icon.png';
 import './DirectMessage.css';
 
 export default function DirectMessage({ socket, targetUserId, targetUsername, onClose, currentUserId, onVoiceCall, onVideoCall }) {
@@ -154,7 +155,7 @@ export default function DirectMessage({ socket, targetUserId, targetUsername, on
             className="dm-call-button"
             title="Video call"
           >
-            💻
+            <img src={cameraIcon} alt="Video call" className="camera-icon-small" />
           </button>
           <button onClick={onClose} className="dm-close-button">
             ✕

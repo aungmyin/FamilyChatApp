@@ -549,7 +549,7 @@ export default function ChatRoom() {
               📞
             </button>
             <button className="header-button" title="Video call">
-              📹
+              <img src={cameraIcon} alt="Video call" className="camera-icon-small" />
             </button>
             <button className="header-button" title="Info">
               ℹ️
