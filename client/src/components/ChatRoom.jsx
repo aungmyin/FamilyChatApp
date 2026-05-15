@@ -508,8 +508,8 @@ export default function ChatRoom() {
             {openedDMs.map((dm) => {
               const isOnline = onlineUsers.some((user) => user.userId === dm.userId);
               return (
-              <div key={dm.userId} className="dm-tab-wrapper">
-                <button
+                <div key={dm.userId} className="dm-tab-wrapper">
+                  <button
                   onClick={() => setActiveChat(dm.userId)}
                   className={`dm-tab ${activeChat === dm.userId ? 'active' : ''}`}
                 >
@@ -529,7 +529,8 @@ export default function ChatRoom() {
                   ✕
                 </button>
               </div>
-            ))}
+              );
+            })}
 
             {/* Online Users */}
             {onlineUsers.length > 0 && (
