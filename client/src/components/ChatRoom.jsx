@@ -37,11 +37,20 @@ export default function ChatRoom() {
   const [dmTarget, setDmTarget] = useState(null);
   const [unreadCounts, setUnreadCounts] = useState({ general: 0, family: 0, random: 0 });
   const [dmUnreadCounts, setDmUnreadCounts] = useState({});
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const scrollPositionRef = useRef(0);
+  const messageInputRef = useRef(null);
+
+  const emojis = ['😀', '😂', '❤️', '👍', '🎉', '🔥', '😍', '😎', '🙏', '✨', '🎈', '🌟', '💯', '👌', '💪', '🤔', '😴', '😡', '🤗', '😇'];
+
+  const addEmoji = (emoji) => {
+    setMessageText((prev) => prev + emoji);
+    messageInputRef.current?.focus();
+  };
 
   // Initialize socket connection
   useEffect(() => {
@@ -611,20 +620,49 @@ export default function ChatRoom() {
           <div ref={messagesEndRef} />
         </div>
 
+        {/* Emoji Picker for Room */}
+        <div className="emoji-picker-wrapper">
+          {showEmojiPicker && (
+            <div className="emoji-picker">
+              {emojis.map((emoji) => (
+                <button
+                  key={emoji}
+                  type="button"
+                  className="emoji-btn"
+                  onClick={() => {
+                    addEmoji(emoji);
+                    setShowEmojiPicker(false);
+                  }}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* Input Area for Room */}
         <form className="input-container" onSubmit={handleSendMessage}>
-          <button type="button" className="input-action" title="Emoji">
+          <button
+            type="button"
+            className="input-action"
+            title="Emoji"
+            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+          >
             😊
           </button>
           <button type="button" className="input-action" title="Attachment">
             📎
           </button>
           <input
+            ref={messageInputRef}
             type="text"
             placeholder="Type something..."
             value={messageText}
             onChange={handleMessageChange}
             className="message-input"
+            autoComplete="off"
+            inputMode="text"
             disabled={false}
           />
           <button type="submit" className="send-button" disabled={!messageText.trim()}>
