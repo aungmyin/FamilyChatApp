@@ -537,8 +537,9 @@ export default function ChatRoom() {
               <>
                 <div className="online-users-label">ONLINE</div>
                 {onlineUsers.map((user) => {
+                  const isCurrentUser = user.userId === userId;
                   const isAlreadyOpened = openedDMs.some((dm) => dm.userId === user.userId);
-                  if (isAlreadyOpened) return null;
+                  if (isCurrentUser || isAlreadyOpened) return null;
                   return (
                     <button
                       key={user.userId}
