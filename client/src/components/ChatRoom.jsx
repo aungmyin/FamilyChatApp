@@ -464,7 +464,7 @@ export default function ChatRoom() {
                         className="call-user-button video"
                         title={`Video call with ${user.username}`}
                       >
-                        <CameraIcon size={16} color="currentColor" />
+                        <CameraIcon size={25} color="currentColor" />
                       </button>
                     </div>
                   </div>
@@ -549,7 +549,7 @@ export default function ChatRoom() {
               📞
             </button>
             <button className="header-button" title="Video call">
-              <CameraIcon size={18} color="currentColor" />
+              <CameraIcon size={25} color="currentColor" />
             </button>
             <button className="header-button" title="Info">
               ℹ️

@@ -155,7 +155,7 @@ export default function DirectMessage({ socket, targetUserId, targetUsername, on
             className="dm-call-button"
             title="Video call"
           >
-            <CameraIcon size={18} color="currentColor" />
+            <CameraIcon size={25} color="currentColor" />
           </button>
           <button onClick={onClose} className="dm-close-button">
             ✕
