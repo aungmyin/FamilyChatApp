@@ -5,18 +5,26 @@ import { AuthContext } from '../context/AuthContext';
 import VideoCall from './VideoCall';
 import VoiceCall from './VoiceCall';
 import DirectMessage from './DirectMessage';
+import AdminPanel from './AdminPanel';
 import CameraIcon from './CameraIcon';
 import './ChatRoom.css';
 
-const ROOMS = ['family'];
 const MESSAGE_STORAGE_KEY = 'pendingMessages';
 
+const getDisplayName = (room) => {
+  const names = {
+    'yangon-family': '🇲🇲 Yangon Family',
+    'native-family': '👨‍👩‍👧‍👦 Native Family',
+  };
+  return names[room] || room;
+};
+
 export default function ChatRoom() {
-  const { token, userId, username, logout } = useContext(AuthContext);
+  const { token, userId, username, groups, isAdmin, logout } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const [socket, setSocket] = useState(null);
-  const [currentRoom, setCurrentRoom] = useState('general');
+  const [currentRoom, setCurrentRoom] = useState(() => (groups && groups.length > 0 ? groups[0] : null));
   const [messages, setMessages] = useState([]);
   const [messageText, setMessageText] = useState('');
   const [onlineUsers, setOnlineUsers] = useState([]);
@@ -35,9 +43,10 @@ export default function ChatRoom() {
   const [voiceCallTarget, setVoiceCallTarget] = useState(null);
   const [incomingVoiceCall, setIncomingVoiceCall] = useState(null);
   const [dmTarget, setDmTarget] = useState(null);
-  const [unreadCounts, setUnreadCounts] = useState({ general: 0, family: 0, random: 0 });
+  const [unreadCounts, setUnreadCounts] = useState({});
   const [dmUnreadCounts, setDmUnreadCounts] = useState({});
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
 
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
@@ -374,6 +383,7 @@ export default function ChatRoom() {
           currentUserId={userId}
         />
       )}
+      {showAdminPanel && <AdminPanel onClose={() => setShowAdminPanel(false)} />}
       {voiceCallTarget && (
         <VoiceCall
           socket={socket}
@@ -400,28 +410,41 @@ export default function ChatRoom() {
             <h2 className="sidebar-title">💬 FamilyChat</h2>
             <p className="user-status">👤 {username}</p>
           </div>
-          <button onClick={handleLogout} className="logout-button" title="Logout (sign out)">
-            ↑
-          </button>
+          <div className="header-buttons">
+            {isAdmin && (
+              <button onClick={() => setShowAdminPanel(true)} className="admin-btn" title="Admin settings">
+                ⚙️
+              </button>
+            )}
+            <button onClick={handleLogout} className="logout-button" title="Logout (sign out)">
+              ↑
+            </button>
+          </div>
         </div>
 
         {/* Rooms */}
-        <div className="rooms-section">
-          <h3 className="section-title">Rooms</h3>
-          {ROOMS.map((room) => (
-            <div key={room} className="room-button-wrapper">
-              <button
-                onClick={() => setCurrentRoom(room)}
-                className={`room-button ${room === 'family' ? 'family-btn' : ''} ${currentRoom === room ? 'active' : ''}`}
-              >
-                # {room}
-              </button>
-              {unreadCounts[room] > 0 && (
-                <span className="unread-badge">{unreadCounts[room]}</span>
-              )}
-            </div>
-          ))}
-        </div>
+        {groups && groups.length > 0 ? (
+          <div className="rooms-section">
+            <h3 className="section-title">Rooms</h3>
+            {groups.map((room) => (
+              <div key={room} className="room-button-wrapper">
+                <button
+                  onClick={() => setCurrentRoom(room)}
+                  className={`room-button ${currentRoom === room ? 'active' : ''}`}
+                >
+                  {getDisplayName(room)}
+                </button>
+                {unreadCounts[room] > 0 && (
+                  <span className="unread-badge">{unreadCounts[room]}</span>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="rooms-section">
+            <p className="empty-text" style={{ padding: '16px' }}>Not assigned to any groups</p>
+          </div>
+        )}
 
         {/* Online Users */}
         <div className="online-section">
@@ -491,13 +514,13 @@ export default function ChatRoom() {
           <div className="rooms-label">CHATS</div>
           <div className="rooms-buttons">
             {/* Rooms */}
-            {ROOMS.map((room) => (
+            {groups && groups.map((room) => (
               <button
                 key={room}
                 onClick={() => setActiveChat(room)}
-                className={`room-tab ${room === 'family' ? 'family-btn' : ''} ${activeChat === room ? 'active' : ''}`}
+                className={`room-tab ${activeChat === room ? 'active' : ''}`}
               >
-                # {room}
+                {getDisplayName(room)}
               </button>
             ))}
 
@@ -544,7 +567,7 @@ export default function ChatRoom() {
         {/* Header */}
         <div className="chat-header">
           <div className="header-left">
-            <h2 className="room-name">#{currentRoom}</h2>
+            <h2 className="room-name">{currentRoom ? getDisplayName(currentRoom) : 'FamilyChat'}</h2>
             <span
               className={`connection-status ${connectionStatus}`}
               title={connectionStatus}
@@ -578,7 +601,7 @@ export default function ChatRoom() {
         </div>
 
         {/* Messages Area */}
-        {activeChat === 'family' ? (
+        {groups && groups.includes(activeChat) ? (
           <>
           <div className="messages-container" ref={messagesContainerRef} onScroll={handleScroll}>
             {isLoadingMore && <div className="loading-indicator">Loading older messages...</div>}

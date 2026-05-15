@@ -28,6 +28,15 @@ const UserSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+    isAdmin: {
+      type: Boolean,
+      default: false,
+    },
+    groups: {
+      type: [String],
+      enum: ['yangon-family', 'native-family'],
+      default: [],
+    },
   },
   { timestamps: false }
 );

@@ -37,6 +37,30 @@
   font-weight: 500;
 }
 
+.header-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.admin-btn {
+  background: var(--light-gray);
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.admin-btn:hover {
+  background: var(--border-gray);
+}
+
 .logout-button {
   background: var(--light-gray);
   border-radius: 50%;
@@ -48,6 +72,7 @@
   font-size: 18px;
   cursor: pointer;
   transition: background 0.2s;
+  border: none;
 }
 
 .logout-button:hover {

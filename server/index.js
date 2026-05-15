@@ -9,6 +9,9 @@ const rateLimit = require('express-rate-limit');
 const jwt = require('jsonwebtoken');
 
 const authRoutes = require('./routes/auth');
+const adminRoutes = require('./routes/admin');
+const authMiddleware = require('./middleware/auth');
+const requireAdmin = require('./middleware/requireAdmin');
 const Message = require('./models/Message');
 
 dotenv.config();
@@ -52,6 +55,9 @@ app.get('/', (req, res) => {
 // Auth routes
 app.use('/api/auth', authLimiter, authRoutes);
 
+// Admin routes (protected)
+app.use('/api/admin', authMiddleware, requireAdmin, adminRoutes);
+
 // Socket.IO authentication middleware
 io.use((socket, next) => {
   try {
@@ -62,6 +68,8 @@ io.use((socket, next) => {
     socket.data.user = {
       id: user.id,
       username: user.username,
+      groups: user.groups || [],
+      isAdmin: user.isAdmin || false,
     };
 
     next();
@@ -71,7 +79,7 @@ io.use((socket, next) => {
 });
 
 // Rooms configuration
-const ROOMS = ['general', 'family', 'random'];
+const ROOMS = ['yangon-family', 'native-family'];
 const onlineUsers = new Map(); // userId -> { socketId, username }
 const userCalls = new Map(); // userId -> targetUserId (track active calls)
 
@@ -101,6 +109,12 @@ io.on('connection', (socket) => {
     try {
       if (!ROOMS.includes(room)) {
         return socket.emit('error', { message: 'Invalid room' });
+      }
+
+      // Check group membership
+      const hasAccess = socket.data.user.isAdmin || socket.data.user.groups.includes(room);
+      if (!hasAccess) {
+        return socket.emit('error', { message: 'You do not have access to this room' });
       }
 
       // Leave previous room
@@ -138,6 +152,12 @@ io.on('connection', (socket) => {
     try {
       if (!ROOMS.includes(room) || !messageText) {
         return socket.emit('error', { message: 'Invalid message' });
+      }
+
+      // Check group membership
+      const hasAccess = socket.data.user.isAdmin || socket.data.user.groups.includes(room);
+      if (!hasAccess) {
+        return socket.emit('error', { message: 'You do not have access to this room' });
       }
 
       const trimmedMessage = messageText.trim();
