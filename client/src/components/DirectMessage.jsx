@@ -31,10 +31,16 @@ export default function DirectMessage({ socket, targetUserId, targetUsername, on
       scrollToBottom();
     };
 
-    const handleReceiveDM = ({ author, message, time, conversationId: convId }) => {
+    const handleReceiveDM = (data) => {
+      console.log('Received DM:', data);
+      console.log('Current conversationId:', conversationId);
+      const { author, message, time, conversationId: convId } = data;
       if (convId === conversationId) {
+        console.log('Message matches, adding to chat');
         setMessages((prev) => [...prev, { author, message, time, isPending: false }]);
         scrollToBottom();
+      } else {
+        console.log('ConvId mismatch:', convId, '!==', conversationId);
       }
     };
 
