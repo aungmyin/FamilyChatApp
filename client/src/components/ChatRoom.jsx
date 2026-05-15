@@ -7,7 +7,7 @@ import VoiceCall from './VoiceCall';
 import DirectMessage from './DirectMessage';
 import './ChatRoom.css';
 
-const ROOMS = ['general', 'family', 'random'];
+const ROOMS = ['family'];
 const MESSAGE_STORAGE_KEY = 'pendingMessages';
 
 export default function ChatRoom() {
@@ -22,6 +22,8 @@ export default function ChatRoom() {
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
   const [mobileTab, setMobileTab] = useState('chat'); // 'chat' or 'online'
+  const [openedDMs, setOpenedDMs] = useState([]); // Array of { userId, username }
+  const [activeChat, setActiveChat] = useState('family'); // 'family' or userId of DM
   const [typingUsers, setTypingUsers] = useState(new Set());
   const [isConnected, isConnectedRef] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState('connecting');
@@ -340,7 +342,8 @@ export default function ChatRoom() {
 
   return (
     <>
-      {dmTarget && (
+      {/* Show DM only if viewing on desktop or not in tab view */}
+      {false && dmTarget && (
         <DirectMessage
           socket={socket}
           targetUserId={dmTarget.userId}
@@ -434,7 +437,12 @@ export default function ChatRoom() {
                       <div className="dm-button-wrapper">
                         <button
                           onClick={() => {
-                            setDmTarget({ userId: user.userId, username: user.username });
+                            const dmUser = { userId: user.userId, username: user.username };
+                            setOpenedDMs((prev) => {
+                              const exists = prev.some((dm) => dm.userId === user.userId);
+                              return exists ? prev : [...prev, dmUser];
+                            });
+                            setActiveChat(user.userId);
                             setDmUnreadCounts((prev) => ({
                               ...prev,
                               [conversationId]: 0,
@@ -472,18 +480,43 @@ export default function ChatRoom() {
 
       {/* Main Chat Area */}
       <div className="chat-main" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-        {/* Mobile Rooms Bar */}
+        {/* Mobile Rooms Bar with DMs */}
         <div className="mobile-rooms-bar">
-          <div className="rooms-label">ROOMS</div>
+          <div className="rooms-label">CHATS</div>
           <div className="rooms-buttons">
+            {/* Rooms */}
             {ROOMS.map((room) => (
               <button
                 key={room}
-                onClick={() => setCurrentRoom(room)}
-                className={`room-tab ${currentRoom === room ? 'active' : ''}`}
+                onClick={() => setActiveChat(room)}
+                className={`room-tab ${activeChat === room ? 'active' : ''}`}
               >
                 # {room}
               </button>
+            ))}
+
+            {/* Opened DMs */}
+            {openedDMs.map((dm) => (
+              <div key={dm.userId} className="dm-tab-wrapper">
+                <button
+                  onClick={() => setActiveChat(dm.userId)}
+                  className={`dm-tab ${activeChat === dm.userId ? 'active' : ''}`}
+                >
+                  {dm.username}
+                </button>
+                <button
+                  onClick={() => {
+                    setOpenedDMs((prev) => prev.filter((d) => d.userId !== dm.userId));
+                    if (activeChat === dm.userId) {
+                      setActiveChat('family');
+                    }
+                  }}
+                  className="dm-close-btn"
+                  title="Close chat"
+                >
+                  ✕
+                </button>
+              </div>
             ))}
           </div>
         </div>
@@ -514,10 +547,11 @@ export default function ChatRoom() {
         </div>
 
         {/* Messages Area */}
-        <div className="messages-container" ref={messagesContainerRef} onScroll={handleScroll}>
-          {isLoadingMore && <div className="loading-indicator">Loading older messages...</div>}
+        {activeChat === 'family' ? (
+          <div className="messages-container" ref={messagesContainerRef} onScroll={handleScroll}>
+            {isLoadingMore && <div className="loading-indicator">Loading older messages...</div>}
 
-          {messages.map((msg, index) => (
+            {messages.map((msg, index) => (
             <div
               key={msg.id || `msg-${index}`}
               className={`message-group ${msg.author === username ? 'own' : ''} ${
@@ -554,7 +588,7 @@ export default function ChatRoom() {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input Area */}
+        {/* Input Area for Room */}
         <form className="input-container" onSubmit={handleSendMessage}>
           <button type="button" className="input-action" title="Emoji">
             😊
@@ -574,6 +608,19 @@ export default function ChatRoom() {
             ➤
           </button>
         </form>
+        ) : (
+          /* Show DM Chat */
+          <DirectMessage
+            socket={socket}
+            targetUserId={activeChat}
+            targetUsername={openedDMs.find((dm) => dm.userId === activeChat)?.username}
+            onClose={() => {
+              setOpenedDMs((prev) => prev.filter((dm) => dm.userId !== activeChat));
+              setActiveChat('family');
+            }}
+            currentUserId={userId}
+          />
+        )}
       </div>
     </div>
     </>
