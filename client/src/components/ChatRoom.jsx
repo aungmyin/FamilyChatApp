@@ -377,10 +377,10 @@ export default function ChatRoom() {
         <div className="online-section">
           <h3 className="section-title">Online</h3>
           <div className="users-list">
-            {onlineUsers.length === 0 ? (
+            {onlineUsers.filter((user) => user.userId !== userId).length === 0 ? (
               <p className="empty-text">No one online</p>
             ) : (
-              onlineUsers.map((user) => {
+              onlineUsers.filter((user) => user.userId !== userId).map((user) => {
                 const conversationId = [userId, user.userId].sort().join('_');
                 const unreadDMs = dmUnreadCounts[conversationId] || 0;
                 return (
