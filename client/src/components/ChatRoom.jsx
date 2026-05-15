@@ -548,6 +548,7 @@ export default function ChatRoom() {
 
         {/* Messages Area */}
         {activeChat === 'family' ? (
+          <>
           <div className="messages-container" ref={messagesContainerRef} onScroll={handleScroll}>
             {isLoadingMore && <div className="loading-indicator">Loading older messages...</div>}
 
@@ -608,6 +609,7 @@ export default function ChatRoom() {
             ➤
           </button>
         </form>
+        </>
         ) : (
           /* Show DM Chat */
           <DirectMessage
