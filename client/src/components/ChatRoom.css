@@ -613,15 +613,21 @@
 
   .chat-main {
     width: 100%;
+    height: calc(100vh - 60px);
+    display: flex;
+    flex-direction: column;
   }
 
   .messages-container {
+    flex: 1;
     padding: 8px;
+    overflow-y: auto;
   }
 
   .input-container {
     padding: 8px;
     gap: 6px;
+    flex-shrink: 0;
   }
 
   .message-input {
