@@ -601,4 +601,69 @@
     height: 32px;
     font-size: 16px;
   }
+
+  /* Mobile optimizations */
+  .sidebar {
+    display: none;
+  }
+
+  .chat-container {
+    flex-direction: column;
+  }
+
+  .chat-main {
+    width: 100%;
+  }
+
+  .messages-container {
+    padding: 8px;
+  }
+
+  .input-container {
+    padding: 8px;
+    gap: 6px;
+  }
+
+  .message-input {
+    font-size: 16px;
+    padding: 10px 12px;
+  }
+
+  .input-action {
+    width: 40px;
+    height: 40px;
+  }
+
+  .send-button {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+  }
+
+  .room-name {
+    font-size: 16px;
+  }
+
+  .chat-header {
+    padding: 12px;
+  }
+
+  .header-right {
+    gap: 4px;
+  }
+
+  .header-button {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+  }
+
+  .call-buttons-group {
+    gap: 2px;
+  }
+
+  .call-user-button {
+    padding: 8px 6px;
+    font-size: 18px;
+  }
 }

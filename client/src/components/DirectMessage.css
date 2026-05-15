@@ -189,13 +189,52 @@
 @media (max-width: 768px) {
   .direct-message-panel {
     max-width: 100%;
+    width: 100%;
+    position: fixed;
+    left: 0;
+    top: 0;
   }
 
-  .dm-messages {
+  .dm-header {
     padding: 12px;
   }
 
+  .dm-title {
+    font-size: 14px;
+  }
+
+  .dm-messages {
+    padding: 12px 8px;
+  }
+
   .dm-bubble {
-    max-width: 90%;
+    max-width: 85%;
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .dm-input-area {
+    padding: 10px 8px;
+    gap: 6px;
+  }
+
+  .dm-input {
+    padding: 10px 12px;
+    font-size: 16px;
+    height: 40px;
+  }
+
+  .dm-send-button {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+  }
+
+  .dm-author {
+    font-size: 10px;
+  }
+
+  .dm-time {
+    font-size: 10px;
   }
 }
