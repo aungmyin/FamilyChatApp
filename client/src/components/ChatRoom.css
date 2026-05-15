@@ -699,4 +699,58 @@
   .mobile-panel.active {
     display: block;
   }
+
+  /* Mobile rooms bar */
+  .mobile-rooms-bar {
+    display: none;
+  }
+
+  @media (max-width: 768px) {
+    .mobile-rooms-bar {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 12px;
+      background: #f8f9fa;
+      border-bottom: 1px solid var(--border-gray);
+    }
+
+    .rooms-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-light);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .rooms-buttons {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .room-tab {
+      padding: 8px 14px;
+      background: var(--white);
+      border: 1px solid var(--border-gray);
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-dark);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .room-tab:hover {
+      background: var(--light-gray);
+    }
+
+    .room-tab.active {
+      background: var(--primary-blue);
+      color: var(--white);
+      border-color: var(--primary-blue);
+    }
+  }
 }

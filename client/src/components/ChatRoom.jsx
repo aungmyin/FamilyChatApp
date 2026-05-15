@@ -472,6 +472,22 @@ export default function ChatRoom() {
 
       {/* Main Chat Area */}
       <div className="chat-main" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+        {/* Mobile Rooms Bar */}
+        <div className="mobile-rooms-bar">
+          <div className="rooms-label">ROOMS</div>
+          <div className="rooms-buttons">
+            {ROOMS.map((room) => (
+              <button
+                key={room}
+                onClick={() => setCurrentRoom(room)}
+                className={`room-tab ${currentRoom === room ? 'active' : ''}`}
+              >
+                # {room}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Header */}
         <div className="chat-header">
           <div className="header-left">
