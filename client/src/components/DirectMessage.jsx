@@ -34,10 +34,10 @@ export default function DirectMessage({ socket, targetUserId, targetUsername, on
     const handleReceiveDM = (data) => {
       console.log('Received DM:', data);
       console.log('Current conversationId:', conversationId);
-      const { author, message, time, conversationId: convId } = data;
+      const { author, message, time, authorId, conversationId: convId } = data;
       if (convId === conversationId) {
         console.log('Message matches, adding to chat');
-        setMessages((prev) => [...prev, { author, message, time, isPending: false }]);
+        setMessages((prev) => [...prev, { author, message, time, authorId, isPending: false }]);
         scrollToBottom();
       } else {
         console.log('ConvId mismatch:', convId, '!==', conversationId);
@@ -168,7 +168,7 @@ export default function DirectMessage({ socket, targetUserId, targetUsername, on
         {messages.map((msg, idx) => (
           <div
             key={idx}
-            className={`dm-message-group ${msg.author === 'You' ? 'own' : ''}`}
+            className={`dm-message-group ${msg.author === 'You' || msg.authorId === currentUserId ? 'own' : ''}`}
           >
             <div className="dm-bubble">
               <div className="dm-author">{msg.author}</div>

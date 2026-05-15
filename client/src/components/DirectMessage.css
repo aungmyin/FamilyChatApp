@@ -92,7 +92,8 @@
 
 .dm-message-group {
   display: flex;
-  margin-bottom: 4px;
+  flex-direction: row;
+  margin-bottom: 8px;
 }
 
 .dm-message-group.own {
