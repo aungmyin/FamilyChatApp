@@ -133,6 +133,7 @@ export default function VideoCall({ socket, targetSocketId, targetUsername, onCl
     if (localVideoRef.current) localVideoRef.current.srcObject = null;
     if (remoteVideoRef.current) remoteVideoRef.current.srcObject = null;
     socket.emit('end_call', { to: targetSocketId || incomingFrom });
+    socket.emit('call_ended', { targetUsername });
     setCallState('idle');
     onClose?.();
   };
@@ -185,10 +186,12 @@ export default function VideoCall({ socket, targetSocketId, targetUsername, onCl
 
   useEffect(() => {
     return () => {
-      console.log('VideoCall unmounting, callState=', callState);
-      if (callState !== 'idle') endCall();
+      console.log('VideoCall unmounting');
+      if (peerRef.current || streamRef.current) {
+        endCall();
+      }
     };
-  }, [callState]);
+  }, []);
 
   return (
     <div className="video-call-container">

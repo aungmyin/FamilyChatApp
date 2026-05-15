@@ -169,6 +169,19 @@ export default function ChatRoom() {
       setCallTarget({ socketId: from, username: callerUsername, isIncoming: true, offer });
     });
 
+    newSocket.on('call_ended', ({ targetUsername }) => {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `call-ended-${Date.now()}`,
+          author: 'system',
+          message: `Call with ${targetUsername} ended`,
+          time: new Date(),
+          isSystem: true,
+        },
+      ]);
+    });
+
     setSocket(newSocket);
 
     return () => {
@@ -187,6 +200,7 @@ export default function ChatRoom() {
       newSocket.off('room_has_message');
       newSocket.off('error');
       newSocket.off('call_offer');
+      newSocket.off('call_ended');
       newSocket.disconnect();
     };
   }, [token, navigate]);

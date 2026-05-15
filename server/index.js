@@ -266,6 +266,12 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('call_ended', ({ targetUsername }) => {
+    if (socket.data.room) {
+      socket.to(socket.data.room).emit('call_ended', { targetUsername });
+    }
+  });
+
   socket.on('disconnect', () => {
     console.log(`User ${username} disconnected: ${socket.id}`);
 
@@ -282,4 +288,12 @@ io.on('connection', (socket) => {
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+}).on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    const newPort = PORT + 1;
+    console.log(`Port ${PORT} in use, trying ${newPort}...`);
+    server.listen(newPort, () => {
+      console.log(`Server running on port ${newPort}`);
+    });
+  }
 });
