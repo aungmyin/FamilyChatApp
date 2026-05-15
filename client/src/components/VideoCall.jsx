@@ -82,7 +82,7 @@ export default function VideoCall({ socket, targetSocketId, targetUsername, onCl
       console.log('startCall: local description set');
 
       console.log('startCall: emitting call_offer to', targetSocketId);
-      socket.emit('call_offer', { to: targetSocketId, offer: { type: offer.type, sdp: offer.sdp } });
+      socket.emit('call_offer', { to: targetSocketId, offer: { type: offer.type, sdp: offer.sdp }, isVideo: true });
       console.log('startCall: call_offer emitted');
     } catch (err) {
       console.error('startCall error:', err);

@@ -175,9 +175,12 @@ export default function ChatRoom() {
       console.error('Socket error:', message);
     });
 
-    newSocket.on('call_offer', ({ from, username: callerUsername, offer }) => {
-      setIncomingCall({ socketId: from, username: callerUsername, offer });
-      setCallTarget({ socketId: from, username: callerUsername, isIncoming: true, offer });
+    newSocket.on('call_offer', ({ from, username: callerUsername, offer, isVideo }) => {
+      if (isVideo) {
+        setCallTarget({ socketId: from, username: callerUsername, isIncoming: true, offer });
+      } else {
+        setVoiceCallTarget({ socketId: from, username: callerUsername, isIncoming: true, offer });
+      }
     });
 
     newSocket.on('call_ended', ({ targetUsername }) => {
@@ -676,7 +679,7 @@ export default function ChatRoom() {
             onVoiceCall={(targetUserId) => {
               const user = onlineUsers.find((u) => u.userId === targetUserId);
               if (user) {
-                setCallTarget({ socketId: user.socketId, username: user.username, isVideo: false });
+                setVoiceCallTarget({ socketId: user.socketId, username: user.username });
               }
             }}
             onVideoCall={(targetUserId) => {

@@ -78,7 +78,7 @@ export default function VoiceCall({ socket, targetSocketId, targetUsername, onCl
       await pc.setLocalDescription(offer);
       console.log('startCall: offer created');
 
-      socket.emit('call_offer', { to: targetSocketId, offer: { type: offer.type, sdp: offer.sdp } });
+      socket.emit('call_offer', { to: targetSocketId, offer: { type: offer.type, sdp: offer.sdp }, isVideo: false });
       console.log('startCall: call_offer emitted');
     } catch (err) {
       console.error('startCall error:', err);

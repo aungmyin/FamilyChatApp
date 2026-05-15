@@ -241,10 +241,10 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('call_offer', ({ to, offer }) => {
+  socket.on('call_offer', ({ to, offer, isVideo }) => {
     const targetSocket = io.sockets.sockets.get(to);
     if (targetSocket) {
-      targetSocket.emit('call_offer', { from: socket.id, username: socket.data.user.username, offer });
+      targetSocket.emit('call_offer', { from: socket.id, username: socket.data.user.username, offer, isVideo });
     }
   });
 
