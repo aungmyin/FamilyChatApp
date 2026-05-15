@@ -550,6 +550,13 @@ export default function ChatRoom() {
             <button className="header-button" title="Info">
               ℹ️
             </button>
+            <button
+              onClick={logout}
+              className="header-button logout-button"
+              title="Logout"
+            >
+              🚪
+            </button>
           </div>
         </div>
 
