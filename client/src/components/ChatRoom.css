@@ -790,12 +790,14 @@
     }
 
     .online-users-label {
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
       color: var(--text-light);
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      margin-left: 0;
+      white-space: nowrap;
+      padding: 8px 4px;
+      align-self: center;
     }
 
     .user-tab {
