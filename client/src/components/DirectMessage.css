@@ -219,6 +219,54 @@
   cursor: not-allowed;
 }
 
+.dm-emoji-picker-wrapper {
+  position: relative;
+}
+
+.dm-emoji-picker {
+  position: absolute;
+  bottom: 60px;
+  left: 16px;
+  background: var(--white);
+  border: 1px solid var(--border-gray);
+  border-radius: 12px;
+  padding: 8px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+  max-width: 280px;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.dm-emoji-btn {
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.dm-emoji-btn:hover {
+  background: var(--light-gray);
+}
+
+.dm-emoji-toggle {
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 8px 12px;
+  transition: background 0.2s;
+  border-radius: 6px;
+}
+
+.dm-emoji-toggle:hover {
+  background: var(--light-gray);
+}
+
 @media (max-width: 768px) {
   .direct-message-panel {
     max-width: 100%;

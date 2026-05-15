@@ -8,10 +8,19 @@ export default function DirectMessage({ socket, targetUserId, targetUsername, on
   const [typingUsers, setTypingUsers] = useState(new Set());
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
   const typingTimeoutRef = useRef(null);
+  const inputRef = useRef(null);
   const conversationId = [currentUserId, targetUserId].sort().join('_');
+
+  const emojis = ['😀', '😂', '❤️', '👍', '🎉', '🔥', '😍', '😎', '🙏', '✨', '🎈', '🌟', '💯', '👌', '💪', '🤔', '😴', '😡', '🤗', '😇'];
+
+  const addEmoji = (emoji) => {
+    setMessageText((prev) => prev + emoji);
+    inputRef.current?.focus();
+  };
 
   const scrollToBottom = () => {
     setTimeout(() => messagesEndRef.current?.scrollIntoView(), 0);
@@ -194,13 +203,44 @@ export default function DirectMessage({ socket, targetUserId, targetUsername, on
         <div ref={messagesEndRef} />
       </div>
 
+      <div className="dm-emoji-picker-wrapper">
+        {showEmojiPicker && (
+          <div className="dm-emoji-picker">
+            {emojis.map((emoji) => (
+              <button
+                key={emoji}
+                type="button"
+                className="dm-emoji-btn"
+                onClick={() => {
+                  addEmoji(emoji);
+                  setShowEmojiPicker(false);
+                }}
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
       <form className="dm-input-area" onSubmit={handleSendMessage}>
+        <button
+          type="button"
+          className="dm-emoji-toggle"
+          onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+          title="Emojis"
+        >
+          😊
+        </button>
         <input
+          ref={inputRef}
           type="text"
           placeholder="Type a message..."
           value={messageText}
           onChange={handleMessageChange}
           className="dm-input"
+          autoComplete="off"
+          inputMode="text"
         />
         <button type="submit" className="dm-send-button" disabled={!messageText.trim()}>
           ➤
