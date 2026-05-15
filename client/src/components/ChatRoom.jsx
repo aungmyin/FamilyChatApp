@@ -630,6 +630,7 @@ export default function ChatRoom() {
         </>
         ) : activeChat === 'online' ? (
           /* Show Online Users Panel */
+          <>
           <div className="online-users-panel">
             <div className="online-panel-header">
               <h3>Online Users</h3>
@@ -660,6 +661,7 @@ export default function ChatRoom() {
               })}
             </div>
           </div>
+          </>
         ) : (
           /* Show DM Chat */
           <DirectMessage
