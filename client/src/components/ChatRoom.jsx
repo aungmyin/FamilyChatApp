@@ -551,11 +551,15 @@ export default function ChatRoom() {
               ℹ️
             </button>
             <button
-              onClick={logout}
+              onClick={() => {
+                if (window.confirm('Are you sure you want to logout?')) {
+                  logout();
+                }
+              }}
               className="header-button logout-button"
               title="Logout"
             >
-              🚪
+              ❌
             </button>
           </div>
         </div>
