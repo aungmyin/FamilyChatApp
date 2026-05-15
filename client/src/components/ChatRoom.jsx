@@ -21,10 +21,8 @@ export default function ChatRoom() {
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
-  const [mobileTab, setMobileTab] = useState('chat'); // 'chat' or 'online'
-  const [showOnlineModal, setShowOnlineModal] = useState(false);
   const [openedDMs, setOpenedDMs] = useState([]); // Array of { userId, username }
-  const [activeChat, setActiveChat] = useState('family'); // 'family' or userId of DM
+  const [activeChat, setActiveChat] = useState('family'); // 'family', 'online', or userId of DM
   const [typingUsers, setTypingUsers] = useState(new Set());
   const [isConnected, isConnectedRef] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState('connecting');
@@ -534,11 +532,11 @@ export default function ChatRoom() {
               );
             })}
 
-            {/* Online Users Button */}
+            {/* Online Users Tab */}
             {onlineUsers.length > 0 && (
               <button
-                onClick={() => setShowOnlineModal(true)}
-                className="online-button"
+                onClick={() => setActiveChat('online')}
+                className={`online-tab ${activeChat === 'online' ? 'active' : ''}`}
               >
                 🟢 ONLINE
               </button>
@@ -661,40 +659,36 @@ export default function ChatRoom() {
           />
         )}
 
-      {/* Online Users Modal */}
-      {showOnlineModal && (
-        <div className="online-modal-overlay" onClick={() => setShowOnlineModal(false)}>
-          <div className="online-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="online-modal-header">
-              <h3>Online Users</h3>
-              <button className="online-modal-close" onClick={() => setShowOnlineModal(false)}>✕</button>
-            </div>
-            <div className="online-modal-list">
-              {onlineUsers.map((user) => {
-                const isCurrentUser = user.userId === userId;
-                const isAlreadyOpened = openedDMs.some((dm) => dm.userId === user.userId);
-                if (isCurrentUser) return null;
-                return (
-                  <button
-                    key={user.userId}
-                    onClick={() => {
-                      if (!isAlreadyOpened) {
-                        setOpenedDMs((prev) => [
-                          ...prev,
-                          { userId: user.userId, username: user.username }
-                        ]);
-                      }
-                      setActiveChat(user.userId);
-                      setShowOnlineModal(false);
-                    }}
-                    className="online-user-item"
-                  >
-                    <span className="online-dot">🟢</span>
-                    <span className="online-username">{user.username}</span>
-                  </button>
-                );
-              })}
-            </div>
+      {/* Online Users List Panel */}
+      {activeChat === 'online' && (
+        <div className="online-users-panel">
+          <div className="online-panel-header">
+            <h3>Online Users</h3>
+          </div>
+          <div className="online-panel-list">
+            {onlineUsers.map((user) => {
+              const isCurrentUser = user.userId === userId;
+              const isAlreadyOpened = openedDMs.some((dm) => dm.userId === user.userId);
+              if (isCurrentUser) return null;
+              return (
+                <button
+                  key={user.userId}
+                  onClick={() => {
+                    if (!isAlreadyOpened) {
+                      setOpenedDMs((prev) => [
+                        ...prev,
+                        { userId: user.userId, username: user.username }
+                      ]);
+                    }
+                    setActiveChat(user.userId);
+                  }}
+                  className="online-panel-user"
+                >
+                  <span className="online-dot">🟢</span>
+                  <span className="online-username">{user.username}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
