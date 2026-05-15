@@ -646,6 +646,18 @@ export default function ChatRoom() {
               setActiveChat('family');
             }}
             currentUserId={userId}
+            onVoiceCall={(targetUserId) => {
+              const user = onlineUsers.find((u) => u.userId === targetUserId);
+              if (user) {
+                setCallTarget({ socketId: user.socketId, username: user.username });
+              }
+            }}
+            onVideoCall={(targetUserId) => {
+              const user = onlineUsers.find((u) => u.userId === targetUserId);
+              if (user) {
+                setCallTarget({ socketId: user.socketId, username: user.username, isVideo: true });
+              }
+            }}
           />
         )}
 

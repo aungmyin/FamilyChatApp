@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './DirectMessage.css';
 
-export default function DirectMessage({ socket, targetUserId, targetUsername, onClose, currentUserId }) {
+export default function DirectMessage({ socket, targetUserId, targetUsername, onClose, currentUserId, onVoiceCall, onVideoCall }) {
   const [messages, setMessages] = useState([]);
   const [messageText, setMessageText] = useState('');
   const [typingUsers, setTypingUsers] = useState(new Set());
@@ -141,9 +141,25 @@ export default function DirectMessage({ socket, targetUserId, targetUsername, on
     <div className="direct-message-panel">
       <div className="dm-header">
         <h3 className="dm-title">💬 {targetUsername}</h3>
-        <button onClick={onClose} className="dm-close-button">
-          ✕
-        </button>
+        <div className="dm-header-actions">
+          <button
+            onClick={() => onVoiceCall && onVoiceCall(targetUserId)}
+            className="dm-call-button"
+            title="Voice call"
+          >
+            📞
+          </button>
+          <button
+            onClick={() => onVideoCall && onVideoCall(targetUserId)}
+            className="dm-call-button"
+            title="Video call"
+          >
+            💻
+          </button>
+          <button onClick={onClose} className="dm-close-button">
+            ✕
+          </button>
+        </div>
       </div>
 
       <div className="dm-messages" ref={messagesContainerRef} onScroll={handleScroll}>

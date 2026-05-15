@@ -38,6 +38,28 @@
   margin: 0;
 }
 
+.dm-header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.dm-call-button {
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: var(--text-dark);
+  padding: 4px 8px;
+  transition: all 0.2s;
+  border-radius: 6px;
+}
+
+.dm-call-button:hover {
+  background: var(--light-gray);
+  transform: scale(1.1);
+}
+
 .dm-close-button {
   background: transparent;
   border: none;
