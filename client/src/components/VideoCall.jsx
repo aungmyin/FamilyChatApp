@@ -11,6 +11,9 @@ const VIDEO_CONSTRAINTS = {
 const ICE_SERVERS = [
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
+  { urls: 'stun:stun2.l.google.com:19302' },
+  { urls: 'stun:stun3.l.google.com:19302' },
+  { urls: 'stun:stun4.l.google.com:19302' },
 ];
 
 export default function VideoCall({ socket, targetSocketId, targetUsername, onClose, incomingCall }) {
@@ -36,13 +39,27 @@ export default function VideoCall({ socket, targetSocketId, targetUsername, onCl
     peerRef.current = pc;
 
     pc.ontrack = (e) => {
+      console.log('Received remote video track:', e.streams[0]);
       if (remoteVideoRef.current) remoteVideoRef.current.srcObject = e.streams[0];
     };
 
     pc.onicecandidate = (e) => {
-      if (e.candidate && socket && recipientId) {
-        socket.emit('ice_candidate', { to: recipientId, candidate: e.candidate });
+      if (e.candidate) {
+        console.log('ICE candidate:', e.candidate.candidate.substring(0, 50));
+        if (socket && recipientId) {
+          socket.emit('ice_candidate', { to: recipientId, candidate: e.candidate });
+        }
+      } else {
+        console.log('ICE candidate gathering complete');
       }
+    };
+
+    pc.oniceconnectionstatechange = () => {
+      console.log('ICE connection state:', pc.iceConnectionState);
+    };
+
+    pc.onconnectionstatechange = () => {
+      console.log('Peer connection state:', pc.connectionState);
     };
 
     return pc;
