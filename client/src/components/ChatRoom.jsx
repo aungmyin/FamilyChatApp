@@ -53,6 +53,13 @@ export default function ChatRoom() {
     messageInputRef.current?.focus();
   };
 
+  // Request notification permission on mount
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }, []);
+
   // Initialize socket connection
   useEffect(() => {
     if (!token) {
@@ -187,6 +194,18 @@ export default function ChatRoom() {
     });
 
     newSocket.on('call_offer', ({ from, username: callerUsername, offer, isVideo }) => {
+      const callType = isVideo ? 'video' : 'voice';
+
+      // Show browser notification
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification(`Incoming ${callType} call`, {
+          body: `${callerUsername} is calling...`,
+          icon: '/favicon.svg',
+          tag: 'incoming-call',
+          requireInteraction: true,
+        });
+      }
+
       if (isVideo) {
         setCallTarget({ socketId: from, username: callerUsername, isIncoming: true, offer, showAlert: true });
       } else {
