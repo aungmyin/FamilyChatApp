@@ -2,18 +2,24 @@ import React, { useEffect, useRef, useState } from 'react';
 import './VoiceCall.css';
 
 const ICE_SERVERS = [
+  // Google STUN servers
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
   { urls: 'stun:stun2.l.google.com:19302' },
   { urls: 'stun:stun3.l.google.com:19302' },
   { urls: 'stun:stun4.l.google.com:19302' },
+  // Additional STUN servers for better coverage
+  { urls: 'stun:stunserver.stunprotocol.org:3478' },
+  { urls: 'stun:stun.stunprotocol.org:3478' },
+  // Primary TURN server (TCP and UDP)
   {
-    urls: 'turn:openrelay.metered.ca:80',
+    urls: ['turn:openrelay.metered.ca:80', 'turn:openrelay.metered.ca:443'],
     username: 'openrelayproject',
     credential: 'openrelayproject',
   },
+  // Backup TURN server for Android compatibility
   {
-    urls: 'turn:openrelay.metered.ca:443',
+    urls: 'turn:openrelay.metered.ca:80?transport=tcp',
     username: 'openrelayproject',
     credential: 'openrelayproject',
   },
@@ -60,11 +66,21 @@ export default function VoiceCall({ socket, targetSocketId, targetUsername, onCl
     pc.oniceconnectionstatechange = () => {
       console.log('ICE connection state:', pc.iceConnectionState);
       setIceState(pc.iceConnectionState);
+      if (pc.iceConnectionState === 'failed') {
+        console.error('ICE connection failed - no valid candidate pair found');
+      }
     };
 
     pc.onconnectionstatechange = () => {
       console.log('Peer connection state:', pc.connectionState);
       setConnectionState(pc.connectionState);
+      if (pc.connectionState === 'failed') {
+        console.error('Peer connection failed');
+      }
+    };
+
+    pc.onicegatheringstatechange = () => {
+      console.log('ICE gathering state:', pc.iceGatheringState);
     };
 
     pc.ontrack = (e) => {
