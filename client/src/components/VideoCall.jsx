@@ -9,24 +9,19 @@ const VIDEO_CONSTRAINTS = {
 };
 
 const ICE_SERVERS = [
-  // Google STUN servers
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
   { urls: 'stun:stun2.l.google.com:19302' },
   { urls: 'stun:stun3.l.google.com:19302' },
   { urls: 'stun:stun4.l.google.com:19302' },
-  // Additional STUN servers for better coverage
   { urls: 'stun:stunserver.stunprotocol.org:3478' },
-  { urls: 'stun:stun.stunprotocol.org:3478' },
-  // Primary TURN server (TCP and UDP)
   {
-    urls: ['turn:openrelay.metered.ca:80', 'turn:openrelay.metered.ca:443'],
+    urls: 'turn:openrelay.metered.ca:80',
     username: 'openrelayproject',
     credential: 'openrelayproject',
   },
-  // Backup TURN server for Android compatibility
   {
-    urls: 'turn:openrelay.metered.ca:80?transport=tcp',
+    urls: 'turn:openrelay.metered.ca:443',
     username: 'openrelayproject',
     credential: 'openrelayproject',
   },
@@ -44,6 +39,7 @@ export default function VideoCall({ socket, targetSocketId, targetUsername, onCl
   const remoteVideoRef = useRef(null);
   const peerRef = useRef(null);
   const streamRef = useRef(null);
+  const connectionTimeoutRef = useRef(null);
 
   const getStream = async (q) => {
     return navigator.mediaDevices.getUserMedia({
@@ -136,6 +132,16 @@ export default function VideoCall({ socket, targetSocketId, targetUsername, onCl
       console.log('startCall: call_offer emitted');
 
       setCallState('calling');
+
+      // Set timeout if no answer received
+      if (connectionTimeoutRef.current) clearTimeout(connectionTimeoutRef.current);
+      connectionTimeoutRef.current = setTimeout(() => {
+        if (callState === 'calling' && connectionState === 'idle') {
+          console.error('No answer received after 30 seconds');
+          setError('Connection timeout - other user not responding');
+          setCallState('idle');
+        }
+      }, 30000);
     } catch (err) {
       console.error('startCall error:', err);
       setError(err.message || 'Error starting call');
@@ -195,6 +201,7 @@ export default function VideoCall({ socket, targetSocketId, targetUsername, onCl
 
   const endCall = () => {
     console.log('endCall: closing call, state=', callState);
+    if (connectionTimeoutRef.current) clearTimeout(connectionTimeoutRef.current);
     peerRef.current?.close();
     peerRef.current = null;
     streamRef.current?.getTracks().forEach((t) => t.stop());
@@ -291,7 +298,16 @@ export default function VideoCall({ socket, targetSocketId, targetUsername, onCl
             📞 Start Call
           </button>
         )}
-        {callState === 'calling' && <div className="call-status">Calling...</div>}
+        {callState === 'calling' && (
+          <div>
+            <div className="call-status">Calling...</div>
+            {error && (
+              <button onClick={startCall} className="call-button start-call" style={{ marginTop: '10px' }}>
+                🔄 Retry
+              </button>
+            )}
+          </div>
+        )}
         {callState === 'incoming' && (
           <div>
             <div className="call-status">Incoming call from {incomingFrom}</div>
