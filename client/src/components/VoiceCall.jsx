@@ -15,6 +15,8 @@ export default function VoiceCall({ socket, targetSocketId, targetUsername, onCl
   const [callDuration, setCallDuration] = useState(0);
   const [incomingFrom, setIncomingFrom] = useState(incomingCall?.socketId || null);
   const [incomingOffer, setIncomingOffer] = useState(incomingCall?.offer || null);
+  const [connectionState, setConnectionState] = useState('idle');
+  const [iceState, setIceState] = useState('new');
   const peerRef = useRef(null);
   const streamRef = useRef(null);
   const remoteAudioRef = useRef(null);
@@ -47,10 +49,12 @@ export default function VoiceCall({ socket, targetSocketId, targetUsername, onCl
 
     pc.oniceconnectionstatechange = () => {
       console.log('ICE connection state:', pc.iceConnectionState);
+      setIceState(pc.iceConnectionState);
     };
 
     pc.onconnectionstatechange = () => {
       console.log('Peer connection state:', pc.connectionState);
+      setConnectionState(pc.connectionState);
     };
 
     pc.ontrack = (e) => {
@@ -266,6 +270,13 @@ export default function VoiceCall({ socket, targetSocketId, targetUsername, onCl
           )}
         </div>
       </div>
+
+      {callState === 'connected' && (
+        <div className="connection-debug" style={{ fontSize: '12px', padding: '8px', background: 'rgba(0,0,0,0.6)', color: '#fff', textAlign: 'center' }}>
+          Connection: <span style={{ color: connectionState === 'connected' ? '#0f0' : '#f80' }}>{connectionState}</span> |
+          ICE: <span style={{ color: iceState === 'connected' ? '#0f0' : '#f80' }}>{iceState}</span>
+        </div>
+      )}
 
       <button onClick={onClose} className="close-button">
         ✕

@@ -22,6 +22,8 @@ export default function VideoCall({ socket, targetSocketId, targetUsername, onCl
   const [error, setError] = useState('');
   const [incomingFrom, setIncomingFrom] = useState(incomingCall?.socketId || null);
   const [incomingOffer, setIncomingOffer] = useState(incomingCall?.offer || null);
+  const [connectionState, setConnectionState] = useState('idle');
+  const [iceState, setIceState] = useState('new');
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const peerRef = useRef(null);
@@ -56,10 +58,12 @@ export default function VideoCall({ socket, targetSocketId, targetUsername, onCl
 
     pc.oniceconnectionstatechange = () => {
       console.log('ICE connection state:', pc.iceConnectionState);
+      setIceState(pc.iceConnectionState);
     };
 
     pc.onconnectionstatechange = () => {
       console.log('Peer connection state:', pc.connectionState);
+      setConnectionState(pc.connectionState);
     };
 
     return pc;
@@ -250,6 +254,13 @@ export default function VideoCall({ socket, targetSocketId, targetUsername, onCl
           </button>
         )}
       </div>
+
+      {callState === 'connected' && (
+        <div className="connection-debug" style={{ fontSize: '12px', padding: '8px', background: 'rgba(0,0,0,0.6)', color: '#fff', textAlign: 'center' }}>
+          Connection: <span style={{ color: connectionState === 'connected' ? '#0f0' : '#f80' }}>{connectionState}</span> |
+          ICE: <span style={{ color: iceState === 'connected' ? '#0f0' : '#f80' }}>{iceState}</span>
+        </div>
+      )}
 
       <button onClick={onClose} className="close-button">
         ✕
