@@ -341,12 +341,26 @@ export default function VoiceCall({ socket, targetSocketId, targetUsername, onCl
         </div>
       </div>
 
-      {callState === 'connected' && (
-        <div className="connection-debug" style={{ fontSize: '12px', padding: '8px', background: 'rgba(0,0,0,0.6)', color: '#fff', textAlign: 'center' }}>
-          Connection: <span style={{ color: connectionState === 'connected' ? '#0f0' : '#f80' }}>{connectionState}</span> |
-          ICE: <span style={{ color: iceState === 'connected' ? '#0f0' : '#f80' }}>{iceState}</span>
-        </div>
-      )}
+      <div className="connection-debug" style={{
+        position: 'fixed',
+        bottom: '120px',
+        left: '10px',
+        right: '10px',
+        padding: '12px',
+        background: 'rgba(0,0,0,0.8)',
+        color: '#fff',
+        textAlign: 'center',
+        fontSize: '14px',
+        fontWeight: 'bold',
+        borderRadius: '8px',
+        zIndex: 100,
+        border: '2px solid #666'
+      }}>
+        <div>State: {callState}</div>
+        <div>Connection: <span style={{ color: connectionState === 'connected' ? '#0f0' : '#f80', fontSize: '16px' }}>{connectionState}</span></div>
+        <div>ICE: <span style={{ color: iceState === 'connected' ? '#0f0' : '#f80', fontSize: '16px' }}>{iceState}</span></div>
+        {error && <div style={{ color: '#ff6b6b', marginTop: '5px' }}>❌ {error}</div>}
+      </div>
 
       <button onClick={onClose} className="close-button">
         ✕
