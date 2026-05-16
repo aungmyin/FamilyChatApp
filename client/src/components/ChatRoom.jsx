@@ -204,6 +204,7 @@ export default function ChatRoom() {
 
     newSocket.on('call_offer', async ({ from, username: callerUsername, offer, isVideo }) => {
       const callType = isVideo ? 'video' : 'voice';
+      console.log(`[SOCKET] Received call_offer: from=${callerUsername}, type=${callType}, sdpLength=${offer?.sdp?.length}`);
 
       if (isVideo) {
         setCallTarget({ socketId: from, username: callerUsername, isIncoming: true, offer, showAlert: true });

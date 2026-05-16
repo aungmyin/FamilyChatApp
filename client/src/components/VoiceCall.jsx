@@ -138,6 +138,7 @@ export default function VoiceCall({ socket, targetSocketId, targetUsername, onCl
       // Wait for initial ICE candidates to gather
       await new Promise(resolve => setTimeout(resolve, 500));
 
+      console.log('[SOCKET] Emitting call_offer', { to: targetSocketId, offerType: offer.type, sdpLength: offer.sdp?.length, socketReady: socket?.connected });
       socket.emit('call_offer', { to: targetSocketId, offer: { type: offer.type, sdp: offer.sdp }, isVideo: false });
       console.log('startCall: call_offer emitted');
 
@@ -187,6 +188,7 @@ export default function VoiceCall({ socket, targetSocketId, targetUsername, onCl
         await pc.setLocalDescription(answer);
         console.log('acceptCall: local description set');
 
+        console.log('[SOCKET] Emitting call_answer', { to: incomingFrom, answerType: answer.type, sdpLength: answer.sdp?.length });
         socket.emit('call_answer', { to: incomingFrom, answer: { type: answer.type, sdp: answer.sdp } });
         console.log('acceptCall: answer emitted');
 
