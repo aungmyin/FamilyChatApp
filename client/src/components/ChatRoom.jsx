@@ -4,6 +4,7 @@ import { io } from 'socket.io-client';
 import { AuthContext } from '../context/AuthContext';
 import VideoCall from './VideoCall';
 import VoiceCall from './VoiceCall';
+import IncomingCallAlert from './IncomingCallAlert';
 import DirectMessage from './DirectMessage';
 import CameraIcon from './CameraIcon';
 import './ChatRoom.css';
@@ -187,9 +188,9 @@ export default function ChatRoom() {
 
     newSocket.on('call_offer', ({ from, username: callerUsername, offer, isVideo }) => {
       if (isVideo) {
-        setCallTarget({ socketId: from, username: callerUsername, isIncoming: true, offer });
+        setCallTarget({ socketId: from, username: callerUsername, isIncoming: true, offer, showAlert: true });
       } else {
-        setVoiceCallTarget({ socketId: from, username: callerUsername, isIncoming: true, offer });
+        setVoiceCallTarget({ socketId: from, username: callerUsername, isIncoming: true, offer, showAlert: true });
       }
     });
 
@@ -372,6 +373,28 @@ export default function ChatRoom() {
           targetUsername={dmTarget.username}
           onClose={() => setDmTarget(null)}
           currentUserId={userId}
+        />
+      )}
+      {voiceCallTarget?.showAlert && voiceCallTarget.isIncoming && (
+        <IncomingCallAlert
+          caller={voiceCallTarget.username}
+          isVideo={false}
+          onAccept={() => setVoiceCallTarget((prev) => ({ ...prev, showAlert: false }))}
+          onDecline={() => {
+            socket?.emit('call_decline', { to: voiceCallTarget.socketId });
+            setVoiceCallTarget(null);
+          }}
+        />
+      )}
+      {callTarget?.showAlert && callTarget.isIncoming && (
+        <IncomingCallAlert
+          caller={callTarget.username}
+          isVideo={true}
+          onAccept={() => setCallTarget((prev) => ({ ...prev, showAlert: false }))}
+          onDecline={() => {
+            socket?.emit('call_decline', { to: callTarget.socketId });
+            setCallTarget(null);
+          }}
         />
       )}
       {voiceCallTarget && (
