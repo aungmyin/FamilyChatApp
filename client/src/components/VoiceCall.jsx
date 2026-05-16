@@ -18,7 +18,13 @@ export default function VoiceCall({ socket, targetSocketId, targetUsername, onCl
   const callDurationRef = useRef(null);
 
   const getStream = async () => {
-    return navigator.mediaDevices.getUserMedia({ audio: true });
+    return navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+      },
+    });
   };
 
   const createPeerConnection = (recipientId) => {
@@ -73,13 +79,14 @@ export default function VoiceCall({ socket, targetSocketId, targetUsername, onCl
 
       setCallState('calling');
       const stream = await getStream();
-      console.log('startCall: stream obtained');
+      console.log('startCall: stream obtained, tracks:', stream.getTracks().length);
+      stream.getTracks().forEach((t) => console.log('  Track:', t.kind, 'enabled:', t.enabled, 'readyState:', t.readyState));
       streamRef.current = stream;
 
       const pc = createPeerConnection(targetSocketId);
       stream.getTracks().forEach((track) => {
         pc.addTrack(track, stream);
-        console.log('startCall: added track', track.kind);
+        console.log('startCall: added track', track.kind, 'enabled:', track.enabled);
       });
 
       const offer = await pc.createOffer();
@@ -98,10 +105,15 @@ export default function VoiceCall({ socket, targetSocketId, targetUsername, onCl
   const acceptCall = async () => {
     try {
       const stream = await getStream();
+      console.log('acceptCall: stream obtained, tracks:', stream.getTracks().length);
+      stream.getTracks().forEach((t) => console.log('  Track:', t.kind, 'enabled:', t.enabled, 'readyState:', t.readyState));
       streamRef.current = stream;
 
       const pc = createPeerConnection(incomingFrom);
-      stream.getTracks().forEach((track) => pc.addTrack(track, stream));
+      stream.getTracks().forEach((track) => {
+        pc.addTrack(track, stream);
+        console.log('acceptCall: added track', track.kind, 'enabled:', track.enabled);
+      });
 
       if (incomingOffer) {
         await pc.setRemoteDescription(new RTCSessionDescription({
