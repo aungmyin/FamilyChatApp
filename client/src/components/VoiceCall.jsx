@@ -14,6 +14,7 @@ export default function VoiceCall({ socket, targetSocketId, targetUsername, onCl
   const [incomingOffer, setIncomingOffer] = useState(incomingCall?.offer || null);
   const peerRef = useRef(null);
   const streamRef = useRef(null);
+  const remoteAudioRef = useRef(null);
   const callDurationRef = useRef(null);
 
   const getStream = async () => {
@@ -27,6 +28,13 @@ export default function VoiceCall({ socket, targetSocketId, targetUsername, onCl
     pc.onicecandidate = (e) => {
       if (e.candidate && socket && recipientId) {
         socket.emit('ice_candidate', { to: recipientId, candidate: e.candidate });
+      }
+    };
+
+    pc.ontrack = (e) => {
+      console.log('Received remote audio track');
+      if (remoteAudioRef.current) {
+        remoteAudioRef.current.srcObject = e.streams[0];
       }
     };
 
@@ -192,6 +200,7 @@ export default function VoiceCall({ socket, targetSocketId, targetUsername, onCl
 
   return (
     <div className="voice-call-container">
+      <audio ref={remoteAudioRef} autoPlay />
       <div className="voice-call-content">
         <div className="caller-info">
           <div className="caller-avatar">🎤</div>
