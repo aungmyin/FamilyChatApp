@@ -126,11 +126,16 @@ export default function VideoCall({ socket, targetSocketId, targetUsername, onCl
       const offer = await pc.createOffer();
       console.log('startCall: offer created, type=', offer.type);
       await pc.setLocalDescription(offer);
-      console.log('startCall: local description set');
+      console.log('startCall: local description set, iceGatheringState=', pc.iceGatheringState);
+
+      // Wait a bit for initial ICE candidates to gather
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       console.log('startCall: emitting call_offer to', targetSocketId);
       socket.emit('call_offer', { to: targetSocketId, offer: { type: offer.type, sdp: offer.sdp }, isVideo: true });
       console.log('startCall: call_offer emitted');
+
+      setCallState('calling');
     } catch (err) {
       console.error('startCall error:', err);
       setError(err.message || 'Error starting call');
@@ -140,26 +145,43 @@ export default function VideoCall({ socket, targetSocketId, targetUsername, onCl
 
   const acceptCall = async () => {
     try {
+      console.log('acceptCall: starting');
       const stream = await getStream(quality);
+      console.log('acceptCall: stream obtained, tracks=', stream.getTracks().length);
       streamRef.current = stream;
       if (localVideoRef.current) localVideoRef.current.srcObject = stream;
 
       const pc = createPeerConnection(incomingFrom);
-      stream.getTracks().forEach((track) => pc.addTrack(track, stream));
+      console.log('acceptCall: peer connection created');
+      stream.getTracks().forEach((track) => {
+        pc.addTrack(track, stream);
+        console.log('acceptCall: added track', track.kind);
+      });
 
       if (incomingOffer) {
+        console.log('acceptCall: setting remote description');
         await pc.setRemoteDescription(new RTCSessionDescription({
           type: incomingOffer.type || 'offer',
           sdp: incomingOffer.sdp
         }));
+        console.log('acceptCall: remote description set, iceConnectionState=', pc.iceConnectionState);
+
         const answer = await pc.createAnswer();
+        console.log('acceptCall: answer created');
         await pc.setLocalDescription(answer);
+        console.log('acceptCall: local description set');
+
         socket.emit('call_answer', { to: incomingFrom, answer: { type: answer.type, sdp: answer.sdp } });
-        setCallState('connected');
+        console.log('acceptCall: answer emitted');
+
+        // Don't set state to connected immediately - wait for ICE connection
+        setCallState('calling');
+      } else {
+        setError('No incoming offer');
       }
     } catch (err) {
       console.error('acceptCall error:', err);
-      setError(err.message);
+      setError(err.message || 'Error accepting call');
     }
   };
 
@@ -195,12 +217,21 @@ export default function VideoCall({ socket, targetSocketId, targetUsername, onCl
     };
 
     const handleCallAnswer = async ({ answer }) => {
+      console.log('handleCallAnswer: received answer');
       if (peerRef.current) {
-        await peerRef.current.setRemoteDescription(new RTCSessionDescription({
-          type: answer.type || 'answer',
-          sdp: answer.sdp
-        }));
-        setCallState('connected');
+        try {
+          console.log('handleCallAnswer: setting remote description');
+          await peerRef.current.setRemoteDescription(new RTCSessionDescription({
+            type: answer.type || 'answer',
+            sdp: answer.sdp
+          }));
+          console.log('handleCallAnswer: remote description set, iceConnectionState=', peerRef.current.iceConnectionState);
+        } catch (err) {
+          console.error('handleCallAnswer error setting remote description:', err);
+          setError('Failed to set remote description: ' + err.message);
+        }
+      } else {
+        console.error('handleCallAnswer: peerRef.current is null');
       }
     };
 
