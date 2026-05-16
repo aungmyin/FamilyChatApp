@@ -45,6 +45,7 @@ export default function ChatRoom() {
   const typingTimeoutRef = useRef(null);
   const scrollPositionRef = useRef(0);
   const messageInputRef = useRef(null);
+  const notificationRef = useRef(null);
 
   const emojis = ['😀', '😂', '❤️', '👍', '🎉', '🔥', '😍', '😎', '🙏', '✨', '🎈', '🌟', '💯', '👌', '💪', '🤔', '😴', '😡', '🤗', '😇'];
 
@@ -53,12 +54,20 @@ export default function ChatRoom() {
     messageInputRef.current?.focus();
   };
 
-  // Request notification permission on mount
-  useEffect(() => {
-    if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission();
+  // Request notification permission only on first call
+  const requestNotificationPermission = async () => {
+    if (!('Notification' in window)) return false;
+    if (Notification.permission === 'granted') return true;
+    if (Notification.permission === 'denied') return false;
+
+    try {
+      const permission = await Notification.requestPermission();
+      return permission === 'granted';
+    } catch (err) {
+      console.error('Failed to request notification permission:', err);
+      return false;
     }
-  }, []);
+  };
 
   // Initialize socket connection
   useEffect(() => {
@@ -193,27 +202,52 @@ export default function ChatRoom() {
       console.error('Socket error:', message);
     });
 
-    newSocket.on('call_offer', ({ from, username: callerUsername, offer, isVideo }) => {
+    newSocket.on('call_offer', async ({ from, username: callerUsername, offer, isVideo }) => {
       const callType = isVideo ? 'video' : 'voice';
-
-      // Show browser notification
-      if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification(`Incoming ${callType} call`, {
-          body: `${callerUsername} is calling...`,
-          icon: '/favicon.svg',
-          tag: 'incoming-call',
-          requireInteraction: true,
-        });
-      }
 
       if (isVideo) {
         setCallTarget({ socketId: from, username: callerUsername, isIncoming: true, offer, showAlert: true });
       } else {
         setVoiceCallTarget({ socketId: from, username: callerUsername, isIncoming: true, offer, showAlert: true });
       }
+
+      // Close previous notification if exists
+      if (notificationRef.current) {
+        notificationRef.current.close();
+      }
+
+      // Only show notification if tab is backgrounded
+      if (document.hidden && 'Notification' in window) {
+        if (Notification.permission === 'granted') {
+          notificationRef.current = new Notification(`Incoming ${callType} call`, {
+            body: `${callerUsername} is calling...`,
+            icon: '/favicon.svg',
+            tag: 'incoming-call',
+            requireInteraction: true,
+            badge: '/favicon.svg',
+          });
+        } else if (Notification.permission === 'default') {
+          const granted = await requestNotificationPermission();
+          if (granted) {
+            notificationRef.current = new Notification(`Incoming ${callType} call`, {
+              body: `${callerUsername} is calling...`,
+              icon: '/favicon.svg',
+              tag: 'incoming-call',
+              requireInteraction: true,
+              badge: '/favicon.svg',
+            });
+          }
+        }
+      }
+
+      // Vibrate if available (mobile)
+      if ('vibrate' in navigator) {
+        navigator.vibrate([200, 100, 200]);
+      }
     });
 
     newSocket.on('call_ended', ({ targetUsername }) => {
+      notificationRef.current?.close();
       setMessages((prev) => [
         ...prev,
         {
@@ -398,8 +432,12 @@ export default function ChatRoom() {
         <IncomingCallAlert
           caller={voiceCallTarget.username}
           isVideo={false}
-          onAccept={() => setVoiceCallTarget((prev) => ({ ...prev, showAlert: false }))}
+          onAccept={() => {
+            notificationRef.current?.close();
+            setVoiceCallTarget((prev) => ({ ...prev, showAlert: false }));
+          }}
           onDecline={() => {
+            notificationRef.current?.close();
             socket?.emit('call_decline', { to: voiceCallTarget.socketId });
             setVoiceCallTarget(null);
           }}
@@ -409,8 +447,12 @@ export default function ChatRoom() {
         <IncomingCallAlert
           caller={callTarget.username}
           isVideo={true}
-          onAccept={() => setCallTarget((prev) => ({ ...prev, showAlert: false }))}
+          onAccept={() => {
+            notificationRef.current?.close();
+            setCallTarget((prev) => ({ ...prev, showAlert: false }));
+          }}
           onDecline={() => {
+            notificationRef.current?.close();
             socket?.emit('call_decline', { to: callTarget.socketId });
             setCallTarget(null);
           }}
