@@ -380,13 +380,13 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3001;
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on port ${PORT} (listening on all interfaces)`);
 }).on('error', (err) => {
   if (err.code === 'EADDRINUSE') {
     const newPort = PORT + 1;
     console.log(`Port ${PORT} in use, trying ${newPort}...`);
-    server.listen(newPort, () => {
+    server.listen(newPort, '0.0.0.0', () => {
       console.log(`Server running on port ${newPort}`);
     });
   }
