@@ -35,6 +35,7 @@ export default function VideoCall({ socket, targetSocketId, targetUsername, onCl
   const [incomingOffer, setIncomingOffer] = useState(incomingCall?.offer || null);
   const [connectionState, setConnectionState] = useState('idle');
   const [iceState, setIceState] = useState('new');
+  const [isSpeakerMuted, setIsSpeakerMuted] = useState(false);
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const peerRef = useRef(null);
@@ -201,6 +202,19 @@ export default function VideoCall({ socket, targetSocketId, targetUsername, onCl
     onClose?.();
   };
 
+  const toggleSpeaker = () => {
+    const newMutedState = !isSpeakerMuted;
+    setIsSpeakerMuted(newMutedState);
+
+    // Mute/unmute audio tracks from remote peer
+    if (remoteVideoRef.current && remoteVideoRef.current.srcObject) {
+      const tracks = remoteVideoRef.current.srcObject.getAudioTracks();
+      tracks.forEach(track => {
+        track.enabled = !newMutedState;
+      });
+    }
+  };
+
   const endCall = () => {
     console.log('endCall: closing call, state=', callState);
     if (connectionTimeoutRef.current) clearTimeout(connectionTimeoutRef.current);
@@ -324,9 +338,14 @@ export default function VideoCall({ socket, targetSocketId, targetUsername, onCl
           </div>
         )}
         {callState === 'connected' && (
-          <button onClick={endCall} className="call-button end-call">
-            📵 End Call
-          </button>
+          <div className="button-group">
+            <button onClick={toggleSpeaker} className="call-button" style={{ background: isSpeakerMuted ? '#ff6b6b' : '#4CAF50' }}>
+              {isSpeakerMuted ? '🔇 Speaker Off' : '🔊 Speaker On'}
+            </button>
+            <button onClick={endCall} className="call-button end-call">
+              📵 End Call
+            </button>
+          </div>
         )}
       </div>
 
