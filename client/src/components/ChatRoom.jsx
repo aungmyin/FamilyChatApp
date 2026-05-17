@@ -654,16 +654,6 @@ export default function ChatRoom() {
               </div>
               );
             })}
-
-            {/* Online Users Tab */}
-            {onlineUsers.length > 0 && (
-              <button
-                onClick={() => setActiveChat('online')}
-                className={`online-tab ${activeChat === 'online' ? 'active' : ''}`}
-              >
-                🟢 ONLINE
-              </button>
-            )}
           </div>
         </div>
 
@@ -796,40 +786,6 @@ export default function ChatRoom() {
           </button>
         </form>
         </>
-        ) : activeChat === 'online' ? (
-          /* Show Online Users Panel */
-          <>
-          <div className="online-users-panel">
-            <div className="online-panel-header">
-              <h3>Online Users</h3>
-            </div>
-            <div className="online-panel-list">
-              {onlineUsers.map((user) => {
-                const isCurrentUser = user.userId === userId;
-                const isAlreadyOpened = openedDMs.some((dm) => dm.userId === user.userId);
-                if (isCurrentUser) return null;
-                return (
-                  <button
-                    key={user.userId}
-                    onClick={() => {
-                      if (!isAlreadyOpened) {
-                        setOpenedDMs((prev) => [
-                          ...prev,
-                          { userId: user.userId, username: user.username }
-                        ]);
-                      }
-                      setActiveChat(user.userId);
-                    }}
-                    className="online-panel-user"
-                  >
-                    <span className="online-dot">🟢</span>
-                    <span className="online-username">{user.username}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-          </>
         ) : (
           /* Show DM Chat */
           <DirectMessage
