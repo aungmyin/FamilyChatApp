@@ -493,7 +493,7 @@ export default function ChatRoom() {
           }}
         />
       )}
-      {voiceCallTarget && (
+      {voiceCallTarget && !voiceCallTarget.showAlert && (
         <VoiceCall
           socket={socket}
           targetSocketId={voiceCallTarget.socketId}
@@ -502,7 +502,7 @@ export default function ChatRoom() {
           incomingCall={voiceCallTarget.isIncoming ? { socketId: voiceCallTarget.socketId, username: voiceCallTarget.username, offer: voiceCallTarget.offer } : null}
         />
       )}
-      {callTarget && (
+      {callTarget && !callTarget.showAlert && (
         <VideoCall
           socket={socket}
           targetSocketId={callTarget.socketId}
