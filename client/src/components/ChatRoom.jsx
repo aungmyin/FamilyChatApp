@@ -636,6 +636,14 @@ export default function ChatRoom() {
               # family
             </button>
 
+            {/* Members Tab */}
+            <button
+              onClick={() => setActiveChat('members')}
+              className={`members-tab ${activeChat === 'members' ? 'active' : ''}`}
+            >
+              👥 Members ({familyUsers.length})
+            </button>
+
             {/* Opened DMs */}
             {openedDMs.map((dm) => {
               const isOnline = onlineUsers.some((user) => user.userId === dm.userId);
@@ -703,7 +711,62 @@ export default function ChatRoom() {
         </div>
 
         {/* Messages Area */}
-        {activeChat === 'family' ? (
+        {activeChat === 'members' ? (
+          // Members List View (Mobile)
+          <>
+            <div className="members-view">
+              <h3>Family Members ({familyUsers.length})</h3>
+              <div className="members-grid">
+                {familyUsers.filter((user) => user._id !== userId).map((user) => {
+                  const isOnline = onlineUsers.some((ou) => ou.userId === user._id);
+                  const conversationId = [userId, user._id].sort().join('_');
+                  return (
+                    <div key={user._id} className="member-card">
+                      <div className="member-header">
+                        <span className={`member-status ${isOnline ? 'online' : 'offline'}`}></span>
+                        <div className="member-name">{user.username}</div>
+                      </div>
+                      <div className="member-actions">
+                        <button
+                          onClick={() => {
+                            const dmUser = { userId: user._id, username: user.username };
+                            setOpenedDMs((prev) => {
+                              const exists = prev.some((dm) => dm.userId === user._id);
+                              return exists ? prev : [...prev, dmUser];
+                            });
+                            setActiveChat(user._id);
+                          }}
+                          className="member-btn dm"
+                          title="Message"
+                        >
+                          💬
+                        </button>
+                        {isOnline && (
+                          <>
+                            <button
+                              onClick={() => setVoiceCallTarget({ socketId: onlineUsers.find(ou => ou.userId === user._id)?.socketId, username: user.username })}
+                              className="member-btn voice"
+                              title="Voice call"
+                            >
+                              📞
+                            </button>
+                            <button
+                              onClick={() => setCallTarget({ socketId: onlineUsers.find(ou => ou.userId === user._id)?.socketId, username: user.username })}
+                              className="member-btn video"
+                              title="Video call"
+                            >
+                              📹
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </>
+        ) : activeChat === 'family' ? (
           <>
           <div className="messages-container" ref={messagesContainerRef} onScroll={handleScroll}>
             {isLoadingMore && <div className="loading-indicator">Loading older messages...</div>}
