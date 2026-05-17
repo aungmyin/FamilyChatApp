@@ -9,29 +9,17 @@ const VIDEO_CONSTRAINTS = {
 };
 
 const ICE_SERVERS = [
+  // Google STUN servers (most reliable)
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
   { urls: 'stun:stun2.l.google.com:19302' },
   { urls: 'stun:stun3.l.google.com:19302' },
   { urls: 'stun:stun4.l.google.com:19302' },
+  // Backup STUN servers
   { urls: 'stun:stunserver.stunprotocol.org:3478' },
   { urls: 'stun:stun.stunprotocol.org:3478' },
-  // TURN servers with TCP fallback for strict networks
-  {
-    urls: ['turn:openrelay.metered.ca:80?transport=udp', 'turn:openrelay.metered.ca:80?transport=tcp'],
-    username: 'openrelayproject',
-    credential: 'openrelayproject',
-  },
-  {
-    urls: ['turn:openrelay.metered.ca:443?transport=tcp'],
-    username: 'openrelayproject',
-    credential: 'openrelayproject',
-  },
-  {
-    urls: ['turn:numb.viagenie.ca:3478?transport=udp', 'turn:numb.viagenie.ca:3478?transport=tcp'],
-    username: 'webrtcweb@gmail.com',
-    credential: 'webrtcweb',
-  },
+  { urls: 'stun:stun.l.google.com:3478' },
+  { urls: 'stun:stun.ekiga.net' },
 ];
 
 export default function VideoCall({ socket, targetSocketId, targetUsername, onClose, incomingCall }) {
