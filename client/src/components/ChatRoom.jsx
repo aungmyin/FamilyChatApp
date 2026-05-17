@@ -5,8 +5,10 @@ import { AuthContext } from '../context/AuthContext';
 import VideoCall from './VideoCall';
 import VoiceCall from './VoiceCall';
 import IncomingCallAlert from './IncomingCallAlert';
+import WebRTCWarning from './WebRTCWarning';
 import DirectMessage from './DirectMessage';
 import CameraIcon from './CameraIcon';
+import { useWebRTCSupport } from '../hooks/useWebRTCSupport';
 import './ChatRoom.css';
 
 const ROOMS = ['family'];
@@ -15,6 +17,7 @@ const MESSAGE_STORAGE_KEY = 'pendingMessages';
 export default function ChatRoom() {
   const { token, userId, username, logout } = useContext(AuthContext);
   const navigate = useNavigate();
+  const webrtcSupport = useWebRTCSupport();
 
   const [socket, setSocket] = useState(null);
   const [currentRoom, setCurrentRoom] = useState('general');
@@ -416,6 +419,11 @@ export default function ChatRoom() {
       setCurrentRoom(ROOMS[roomIndex - 1]);
     }
   };
+
+  // Show warning if WebRTC not supported
+  if (!webrtcSupport.supported) {
+    return <WebRTCWarning />;
+  }
 
   return (
     <>
