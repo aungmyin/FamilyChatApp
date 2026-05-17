@@ -239,7 +239,8 @@ export default function ChatRoom() {
 
     newSocket.on('call_offer', async ({ from, username: callerUsername, offer, isVideo }) => {
       const callType = isVideo ? 'video' : 'voice';
-      console.log(`[SOCKET] Received call_offer: from=${callerUsername}, type=${callType}, sdpLength=${offer?.sdp?.length}`);
+      console.log(`[INCOMING CALL] Received call_offer: from=${callerUsername}, type=${callType}, sdpLength=${offer?.sdp?.length}`);
+      console.log(`[INCOMING CALL] Setting ${callType}CallTarget with isIncoming=true, showAlert=true`);
 
       if (isVideo) {
         setCallTarget({ socketId: from, username: callerUsername, isIncoming: true, offer, showAlert: true });
@@ -252,9 +253,11 @@ export default function ChatRoom() {
         notificationRef.current.close();
       }
 
-      // Only show notification if tab is backgrounded
-      if (document.hidden && 'Notification' in window) {
+      // Show notification - both when tab is active and backgrounded
+      if ('Notification' in window) {
+        console.log(`[INCOMING CALL] Notification permission: ${Notification.permission}`);
         if (Notification.permission === 'granted') {
+          console.log(`[INCOMING CALL] Showing notification for ${callerUsername}`);
           notificationRef.current = new Notification(`Incoming ${callType} call`, {
             body: `${callerUsername} is calling...`,
             icon: '/favicon.svg',
@@ -263,8 +266,10 @@ export default function ChatRoom() {
             badge: '/favicon.svg',
           });
         } else if (Notification.permission === 'default') {
+          console.log(`[INCOMING CALL] Requesting notification permission`);
           const granted = await requestNotificationPermission();
           if (granted) {
+            console.log(`[INCOMING CALL] Permission granted, showing notification`);
             notificationRef.current = new Notification(`Incoming ${callType} call`, {
               body: `${callerUsername} is calling...`,
               icon: '/favicon.svg',
@@ -278,6 +283,7 @@ export default function ChatRoom() {
 
       // Vibrate if available (mobile)
       if ('vibrate' in navigator) {
+        console.log(`[INCOMING CALL] Vibrating device`);
         navigator.vibrate([200, 100, 200]);
       }
     });
