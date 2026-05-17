@@ -546,12 +546,14 @@ export default function ChatRoom() {
 
         {/* All Family Members (Online + Offline) */}
         <div className="online-section">
-          <h3 className="section-title">Members</h3>
+          <h3 className="section-title">Members ({familyUsers.length})</h3>
           <div className="users-list">
+            {console.log('Rendering Members section, familyUsers:', familyUsers)}
             {familyUsers.length === 0 ? (
               <p className="empty-text">No members</p>
             ) : (
               familyUsers.filter((user) => user._id !== userId).map((user) => {
+                console.log('Rendering user:', user.username, 'online:', onlineUsers.some((ou) => ou.userId === user._id));
                 const isOnline = onlineUsers.some((ou) => ou.userId === user._id);
                 const conversationId = [userId, user._id].sort().join('_');
                 const unreadDMs = dmUnreadCounts[conversationId] || 0;
