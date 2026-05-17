@@ -8,6 +8,7 @@ const ICE_SERVERS = [
   { urls: 'stun:stun3.l.google.com:19302' },
   { urls: 'stun:stun4.l.google.com:19302' },
   { urls: 'stun:stunserver.stunprotocol.org:3478' },
+  { urls: 'stun:stun.stunprotocol.org:3478' },
   // TURN servers with TCP fallback for strict networks
   {
     urls: ['turn:openrelay.metered.ca:80?transport=udp', 'turn:openrelay.metered.ca:80?transport=tcp'],
@@ -20,9 +21,9 @@ const ICE_SERVERS = [
     credential: 'openrelayproject',
   },
   {
-    urls: ['turn:turnserver.world:3478?transport=udp', 'turn:turnserver.world:3478?transport=tcp'],
-    username: 'turnserver',
-    credential: 'turnserver',
+    urls: ['turn:numb.viagenie.ca:3478?transport=udp', 'turn:numb.viagenie.ca:3478?transport=tcp'],
+    username: 'webrtcweb@gmail.com',
+    credential: 'webrtcweb',
   },
 ];
 
