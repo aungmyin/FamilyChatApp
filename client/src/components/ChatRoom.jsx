@@ -687,12 +687,6 @@ export default function ChatRoom() {
             </span>
           </div>
           <div className="header-right">
-            <button className="header-button" title="Call">
-              📞
-            </button>
-            <button className="header-button" title="Video call">
-              <CameraIcon size={25} color="currentColor" />
-            </button>
             <button className="header-button" title="Info">
               ℹ️
             </button>
