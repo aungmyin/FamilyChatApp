@@ -226,6 +226,20 @@ export default function VideoCall({ socket, targetSocketId, targetUsername, onCl
     }
   };
 
+  const setEarpieceMode = () => {
+    setVolume(40);
+    if (remoteVideoRef.current) {
+      remoteVideoRef.current.volume = 0.4;
+    }
+  };
+
+  const setSpeakerMode = () => {
+    setVolume(100);
+    if (remoteVideoRef.current) {
+      remoteVideoRef.current.volume = 1.0;
+    }
+  };
+
   const endCall = () => {
     console.log('endCall: closing call, state=', callState);
     if (connectionTimeoutRef.current) clearTimeout(connectionTimeoutRef.current);
@@ -359,15 +373,47 @@ export default function VideoCall({ socket, targetSocketId, targetUsername, onCl
               </button>
             </div>
             <div style={{ padding: '10px', background: 'rgba(0,0,0,0.3)', borderRadius: '8px', marginTop: '10px' }}>
-              <div style={{ color: '#fff', fontSize: '12px', marginBottom: '5px' }}>🔉 Volume: {volume}%</div>
+              <div style={{ color: '#fff', fontSize: '12px', marginBottom: '8px' }}>🔉 Volume: {volume}%</div>
               <input
                 type="range"
                 min="0"
                 max="100"
                 value={volume}
                 onChange={handleVolumeChange}
-                style={{ width: '100%', cursor: 'pointer' }}
+                style={{ width: '100%', cursor: 'pointer', marginBottom: '8px' }}
               />
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  onClick={setEarpieceMode}
+                  style={{
+                    flex: 1,
+                    padding: '8px',
+                    background: volume === 40 ? '#4CAF50' : '#666',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '12px'
+                  }}
+                >
+                  👂 Earpiece
+                </button>
+                <button
+                  onClick={setSpeakerMode}
+                  style={{
+                    flex: 1,
+                    padding: '8px',
+                    background: volume === 100 ? '#4CAF50' : '#666',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '12px'
+                  }}
+                >
+                  📢 Speaker
+                </button>
+              </div>
             </div>
           </div>
         )}
