@@ -99,9 +99,16 @@
   background: var(--border-gray);
 }
 
-.rooms-section,
+.rooms-section {
+  padding: 12px;
+}
+
 .online-section {
   padding: 12px;
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .section-title {
