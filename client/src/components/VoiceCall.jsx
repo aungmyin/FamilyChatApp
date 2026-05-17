@@ -29,6 +29,7 @@ export default function VoiceCall({ socket, targetSocketId, targetUsername, onCl
   const [connectionState, setConnectionState] = useState('idle');
   const [iceState, setIceState] = useState('new');
   const [isSpeakerMuted, setIsSpeakerMuted] = useState(false);
+  const [volume, setVolume] = useState(100);
   const peerRef = useRef(null);
   const streamRef = useRef(null);
   const remoteAudioRef = useRef(null);
@@ -225,6 +226,16 @@ export default function VoiceCall({ socket, targetSocketId, targetUsername, onCl
     }
   };
 
+  const handleVolumeChange = (e) => {
+    const newVolume = parseInt(e.target.value);
+    setVolume(newVolume);
+
+    // Apply volume to remote audio element
+    if (remoteAudioRef.current) {
+      remoteAudioRef.current.volume = newVolume / 100;
+    }
+  };
+
   const endCall = () => {
     console.log('endCall: closing call, state=', callState);
     stopTimer();
@@ -348,13 +359,26 @@ export default function VoiceCall({ socket, targetSocketId, targetUsername, onCl
             </div>
           )}
           {callState === 'connected' && (
-            <div className="button-group">
-              <button onClick={toggleSpeaker} className="call-button" style={{ background: isSpeakerMuted ? '#ff6b6b' : '#4CAF50' }}>
-                {isSpeakerMuted ? '🔇 Speaker Off' : '🔊 Speaker On'}
-              </button>
-              <button onClick={endCall} className="call-button end-call">
-                📵 End Call
-              </button>
+            <div>
+              <div className="button-group">
+                <button onClick={toggleSpeaker} className="call-button" style={{ background: isSpeakerMuted ? '#ff6b6b' : '#4CAF50' }}>
+                  {isSpeakerMuted ? '🔇 Speaker Off' : '🔊 Speaker On'}
+                </button>
+                <button onClick={endCall} className="call-button end-call">
+                  📵 End Call
+                </button>
+              </div>
+              <div style={{ padding: '10px', background: 'rgba(0,0,0,0.3)', borderRadius: '8px', marginTop: '10px' }}>
+                <div style={{ color: '#fff', fontSize: '12px', marginBottom: '5px' }}>🔉 Volume: {volume}%</div>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={volume}
+                  onChange={handleVolumeChange}
+                  style={{ width: '100%', cursor: 'pointer' }}
+                />
+              </div>
             </div>
           )}
           {callState === 'calling' && (
