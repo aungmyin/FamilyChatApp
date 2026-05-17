@@ -82,12 +82,19 @@ export default function ChatRoom() {
 
     const fetchFamilyUsers = async () => {
       try {
+        console.log('Fetching family users from:', `${import.meta.env.VITE_SERVER_URL}/api/users/family`);
         const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/users/family`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+        console.log('Family users response status:', response.status);
+
         if (response.ok) {
           const users = await response.json();
+          console.log('Received family users:', users);
           setFamilyUsers(users);
+        } else {
+          const error = await response.text();
+          console.error('Failed to fetch family users:', response.status, error);
         }
       } catch (err) {
         console.error('Failed to fetch family users:', err);

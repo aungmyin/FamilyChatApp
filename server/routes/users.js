@@ -18,9 +18,14 @@ const validatePassword = (password) => {
 // GET all users in same family
 router.get('/family', async (req, res) => {
   try {
+    console.log('GET /api/users/family - User:', req.user);
+    console.log('Family code:', req.user.familyCode);
+
     const users = await User.find({ familyCode: req.user.familyCode }).select('_id username');
+    console.log('Found users:', users);
     res.json(users);
   } catch (err) {
+    console.error('Error fetching family users:', err);
     res.status(500).json({ message: 'Error fetching family users', error: err.message });
   }
 });
