@@ -8,15 +8,26 @@ const ICE_SERVERS = [
   { urls: 'stun:stun3.l.google.com:19302' },
   { urls: 'stun:stun4.l.google.com:19302' },
   { urls: 'stun:stunserver.stunprotocol.org:3478' },
+  // TURN servers with TCP fallback for strict networks
   {
-    urls: 'turn:openrelay.metered.ca:80',
+    urls: ['turn:openrelay.metered.ca:80?transport=udp', 'turn:openrelay.metered.ca:80?transport=tcp'],
     username: 'openrelayproject',
     credential: 'openrelayproject',
   },
   {
-    urls: 'turn:openrelay.metered.ca:443',
+    urls: ['turn:openrelay.metered.ca:443?transport=tcp'],
     username: 'openrelayproject',
     credential: 'openrelayproject',
+  },
+  {
+    urls: 'turn:numb.viagenie.ca',
+    username: 'webrtcweb@gmail.com',
+    credential: 'webrtcweb',
+  },
+  {
+    urls: 'turn:turnserver.example.com:3478',
+    username: 'user',
+    credential: 'pass',
   },
 ];
 
@@ -52,12 +63,13 @@ export default function VoiceCall({ socket, targetSocketId, targetUsername, onCl
 
     pc.onicecandidate = (e) => {
       if (e.candidate) {
-        console.log('ICE candidate:', e.candidate.candidate.substring(0, 50));
+        const type = e.candidate.type || 'unknown';
+        console.log(`[ICE] ${type} candidate from ${e.candidate.address || 'unknown'}`);
         if (socket && recipientId) {
           socket.emit('ice_candidate', { to: recipientId, candidate: e.candidate });
         }
       } else {
-        console.log('ICE candidate gathering complete');
+        console.log('[ICE] Gathering complete');
       }
     };
 
