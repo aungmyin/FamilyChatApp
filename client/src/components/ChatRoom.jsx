@@ -766,7 +766,7 @@ export default function ChatRoom() {
               </div>
             </div>
           </>
-        ) : activeChat === 'family' ? (
+        ) : activeChat === currentRoom ? (
           <>
           <div className="messages-container" ref={messagesContainerRef} onScroll={handleScroll}>
             {isLoadingMore && <div className="loading-indicator">Loading older messages...</div>}
