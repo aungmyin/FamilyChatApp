@@ -27,14 +27,9 @@ const ICE_SERVERS = [
     credential: 'openrelayproject',
   },
   {
-    urls: 'turn:numb.viagenie.ca',
-    username: 'webrtcweb@gmail.com',
-    credential: 'webrtcweb',
-  },
-  {
-    urls: 'turn:turnserver.example.com:3478',
-    username: 'user',
-    credential: 'pass',
+    urls: ['turn:turnserver.world:3478?transport=udp', 'turn:turnserver.world:3478?transport=tcp'],
+    username: 'turnserver',
+    credential: 'turnserver',
   },
 ];
 
@@ -93,8 +88,14 @@ export default function VideoCall({ socket, targetSocketId, targetUsername, onCl
     pc.onconnectionstatechange = () => {
       console.log('Peer connection state:', pc.connectionState);
       setConnectionState(pc.connectionState);
+      if (pc.connectionState === 'connected') {
+        console.log('Peer connection established - starting call');
+        setCallState('connected');
+      }
       if (pc.connectionState === 'failed') {
         console.error('Peer connection failed');
+        setError('Connection failed - try again');
+        setCallState('idle');
       }
     };
 
