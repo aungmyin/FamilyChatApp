@@ -24,6 +24,16 @@ const ICE_SERVERS = [
     username: 'openrelayproject',
     credential: 'openrelayproject',
   },
+  {
+    urls: 'turn:turnserver.world:3478',
+    username: 'turnserver',
+    credential: 'turnserver',
+  },
+  {
+    urls: 'turn:turnserver.world:3479',
+    username: 'turnserver',
+    credential: 'turnserver',
+  },
 ];
 
 export default function VoiceCall({ socket, targetSocketId, targetUsername, onClose, incomingCall }) {
