@@ -419,6 +419,28 @@ export default function VideoCall({ socket, targetSocketId, targetUsername, onCl
         )}
       </div>
 
+      <div className="connection-debug" style={{
+        position: 'fixed',
+        top: '10px',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        padding: '10px 15px',
+        background: 'rgba(0,0,0,0.85)',
+        color: '#fff',
+        textAlign: 'center',
+        fontSize: '12px',
+        fontWeight: 'bold',
+        borderRadius: '6px',
+        zIndex: 50,
+        border: '1px solid #666',
+        minWidth: '220px'
+      }}>
+        <div>State: {callState}</div>
+        <div>Connection: <span style={{ color: connectionState === 'connected' ? '#0f0' : '#f80' }}>{connectionState}</span></div>
+        <div>ICE: <span style={{ color: iceState === 'connected' ? '#0f0' : '#f80' }}>{iceState}</span></div>
+        {error && <div style={{ color: '#ff6b6b', marginTop: '3px' }}>❌ {error}</div>}
+      </div>
+
       <button onClick={onClose} className="close-button">
         ✕
       </button>
