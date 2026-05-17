@@ -267,43 +267,54 @@ export default function VoiceCall({ socket, targetSocketId, targetUsername, onCl
   useEffect(() => {
     if (!socket) return;
 
+    const handleError = (errorMsg) => {
+      console.error('[CALL ERROR]', errorMsg);
+      setError(errorMsg);
+      setCallState('idle');
+    };
+
     const handleCallOffer = async ({ from, offer }) => {
+      console.log('[CALL] Received call_offer from', from);
       setIncomingFrom(from);
       setIncomingOffer(offer);
       setCallState('incoming');
     };
 
     const handleCallAnswer = async ({ answer }) => {
-      console.log('handleCallAnswer: received answer');
+      console.log('[CALL] Received call_answer, answer type:', answer?.type);
       if (peerRef.current) {
         try {
-          console.log('handleCallAnswer: setting remote description');
+          console.log('[CALL] Setting remote description with answer');
           await peerRef.current.setRemoteDescription(new RTCSessionDescription({
             type: answer.type || 'answer',
             sdp: answer.sdp
           }));
-          console.log('handleCallAnswer: remote description set, iceConnectionState=', peerRef.current.iceConnectionState);
+          console.log('[CALL] Remote description set, connectionState:', peerRef.current.connectionState, 'iceConnectionState:', peerRef.current.iceConnectionState);
           startTimer();
         } catch (err) {
-          console.error('handleCallAnswer error setting remote description:', err);
+          console.error('[CALL] Error setting remote description:', err);
           setError('Failed to set remote description: ' + err.message);
         }
       } else {
-        console.error('handleCallAnswer: peerRef.current is null');
+        console.error('[CALL] peerRef.current is null when answer received');
+        setError('Peer connection not initialized');
       }
     };
 
     const handleIceCandidate = async ({ candidate }) => {
+      console.log('[CALL] Received ICE candidate:', candidate?.candidate?.substring(0, 50));
       if (peerRef.current && candidate) {
         try {
           await peerRef.current.addIceCandidate(new RTCIceCandidate(candidate));
+          console.log('[CALL] ICE candidate added');
         } catch (err) {
-          console.error('Error adding ICE candidate:', err);
+          console.error('[CALL] Error adding ICE candidate:', err);
         }
       }
     };
 
     const handleEndCall = () => {
+      console.log('[CALL] Received end_call');
       endCall();
     };
 
@@ -311,12 +322,14 @@ export default function VoiceCall({ socket, targetSocketId, targetUsername, onCl
     socket.on('call_answer', handleCallAnswer);
     socket.on('ice_candidate', handleIceCandidate);
     socket.on('end_call', handleEndCall);
+    socket.on('error', handleError);
 
     return () => {
       socket.off('call_offer', handleCallOffer);
       socket.off('call_answer', handleCallAnswer);
       socket.off('ice_candidate', handleIceCandidate);
       socket.off('end_call', handleEndCall);
+      socket.off('error', handleError);
     };
   }, [socket]);
 
