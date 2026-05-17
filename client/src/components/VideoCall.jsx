@@ -20,6 +20,17 @@ const ICE_SERVERS = [
   { urls: 'stun:stun.stunprotocol.org:3478' },
   { urls: 'stun:stun.l.google.com:3478' },
   { urls: 'stun:stun.ekiga.net' },
+  // TURN relay for restrictive mobile networks (fallback)
+  {
+    urls: ['turn:openrelay.metered.ca:80?transport=udp', 'turn:openrelay.metered.ca:80?transport=tcp'],
+    username: 'openrelayproject',
+    credential: 'openrelayproject',
+  },
+  {
+    urls: ['turn:openrelay.metered.ca:443?transport=tcp'],
+    username: 'openrelayproject',
+    credential: 'openrelayproject',
+  },
 ];
 
 export default function VideoCall({ socket, targetSocketId, targetUsername, onClose, incomingCall }) {
