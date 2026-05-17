@@ -31,6 +31,10 @@ const MessageSchema = new mongoose.Schema(
       minlength: 1,
       maxlength: 2000,
     },
+    familyCode: {
+      type: String,
+      default: '',
+    },
     time: {
       type: Date,
       default: Date.now,

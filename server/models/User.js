@@ -24,6 +24,18 @@ const UserSchema = new mongoose.Schema(
       minlength: 8,
       select: false,
     },
+    isAdmin: {
+      type: Boolean,
+      default: false,
+    },
+    isBlocked: {
+      type: Boolean,
+      default: false,
+    },
+    familyCode: {
+      type: String,
+      default: '',
+    },
     createdAt: {
       type: Date,
       default: Date.now,

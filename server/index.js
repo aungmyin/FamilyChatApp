@@ -9,6 +9,10 @@ const rateLimit = require('express-rate-limit');
 const jwt = require('jsonwebtoken');
 
 const authRoutes = require('./routes/auth');
+const adminRoutes = require('./routes/admin');
+const userRoutes = require('./routes/users');
+const authMiddleware = require('./middleware/authMiddleware');
+const requireAdmin = require('./middleware/requireAdmin');
 const Message = require('./models/Message');
 
 dotenv.config();
@@ -52,6 +56,12 @@ app.get('/', (req, res) => {
 // Auth routes
 app.use('/api/auth', authLimiter, authRoutes);
 
+// Admin routes
+app.use('/api/admin', authMiddleware, requireAdmin, adminRoutes);
+
+// User routes
+app.use('/api/users', authMiddleware, userRoutes);
+
 // Socket.IO authentication middleware
 io.use((socket, next) => {
   try {
@@ -59,9 +69,14 @@ io.use((socket, next) => {
     if (!token) return next(new Error('Authentication required'));
 
     const user = jwt.verify(token, process.env.JWT_SECRET);
+    if (user.isBlocked) {
+      return next(new Error('User account is blocked'));
+    }
     socket.data.user = {
       id: user.id,
       username: user.username,
+      familyCode: user.familyCode,
+      isAdmin: user.isAdmin,
     };
 
     next();
@@ -70,41 +85,49 @@ io.use((socket, next) => {
   }
 });
 
-// Rooms configuration
-const ROOMS = ['general', 'family', 'random'];
-const onlineUsers = new Map(); // userId -> { socketId, username }
+// Users and calls tracking
+const onlineUsers = new Map(); // userId -> { socketId, username, familyCode }
 const userCalls = new Map(); // userId -> targetUserId (track active calls)
 
-// Helper function to broadcast online users to a room
-const broadcastOnlineUsers = () => {
-  const allUsers = Array.from(onlineUsers.entries()).map(([userId, user]) => ({
-    userId,
-    username: user.username,
-    socketId: user.socketId,
-  }));
-  console.log('Broadcasting online users:', allUsers);
-  io.emit('online_users', allUsers);
+// Helper function to broadcast online users by family
+const broadcastOnlineUsers = (familyCode) => {
+  const familyUsers = Array.from(onlineUsers.entries())
+    .filter(([_, user]) => user.familyCode === familyCode)
+    .map(([userId, user]) => ({
+      userId,
+      username: user.username,
+      socketId: user.socketId,
+    }));
+  console.log(`Broadcasting online users for family ${familyCode}:`, familyUsers);
+  io.to(`family_${familyCode}`).emit('online_users', familyUsers);
 };
 
 io.on('connection', (socket) => {
   const userId = socket.data.user.id.toString();
   const username = socket.data.user.username;
+  const familyCode = socket.data.user.familyCode;
 
-  console.log(`User ${username} connected: ${socket.id}`);
+  console.log(`User ${username} connected: ${socket.id} (family: ${familyCode})`);
 
   // Add user to online users
-  onlineUsers.set(userId, { socketId: socket.id, username });
+  onlineUsers.set(userId, { socketId: socket.id, username, familyCode });
   console.log(`User ${username} added to online users. Total online: ${onlineUsers.size}`);
-  broadcastOnlineUsers();
+
+  // Automatically join family room
+  socket.join(`family_${familyCode}`);
+  socket.data.room = `family_${familyCode}`;
+
+  broadcastOnlineUsers(familyCode);
 
   socket.on('join_room', async ({ room }) => {
     try {
-      if (!ROOMS.includes(room)) {
+      const expectedRoom = `family_${familyCode}`;
+      if (room !== expectedRoom && !socket.data.user.isAdmin) {
         return socket.emit('error', { message: 'Invalid room' });
       }
 
-      // Leave previous room
-      if (socket.data.room) {
+      // Leave previous room if different
+      if (socket.data.room && socket.data.room !== room) {
         socket.leave(socket.data.room);
       }
 
@@ -127,7 +150,7 @@ io.on('connection', (socket) => {
       });
 
       // Broadcast online users
-      broadcastOnlineUsers();
+      broadcastOnlineUsers(familyCode);
     } catch (error) {
       console.error('join_room error:', error);
       socket.emit('error', { message: 'Failed to join room' });
@@ -136,7 +159,8 @@ io.on('connection', (socket) => {
 
   socket.on('send_message', async ({ room, message: messageText }) => {
     try {
-      if (!ROOMS.includes(room) || !messageText) {
+      const expectedRoom = `family_${familyCode}`;
+      if ((room !== expectedRoom && !socket.data.user.isAdmin) || !messageText) {
         return socket.emit('error', { message: 'Invalid message' });
       }
 
@@ -151,6 +175,7 @@ io.on('connection', (socket) => {
         authorId: userId,
         message: trimmedMessage,
         time: new Date(),
+        familyCode,
       });
 
       await messageDoc.save();
@@ -167,8 +192,8 @@ io.on('connection', (socket) => {
         time: messageDoc.time,
       });
 
-      // Notify all users of new message in this room (for unread badges)
-      io.emit('room_has_message', { room });
+      // Notify family users of new message
+      io.to(`family_${familyCode}`).emit('room_has_message', { room });
     } catch (error) {
       console.error('send_message error:', error);
       socket.emit('error', { message: 'Failed to send message' });
@@ -177,7 +202,8 @@ io.on('connection', (socket) => {
 
   socket.on('load_more', async ({ room, before }) => {
     try {
-      if (!ROOMS.includes(room)) {
+      const expectedRoom = `family_${familyCode}`;
+      if (room !== expectedRoom && !socket.data.user.isAdmin) {
         return socket.emit('error', { message: 'Invalid room' });
       }
 
@@ -195,13 +221,15 @@ io.on('connection', (socket) => {
   });
 
   socket.on('typing', ({ room }) => {
-    if (ROOMS.includes(room)) {
+    const expectedRoom = `family_${familyCode}`;
+    if (room === expectedRoom || socket.data.user.isAdmin) {
       socket.to(room).emit('user_typing', username);
     }
   });
 
   socket.on('stop_typing', ({ room }) => {
-    if (ROOMS.includes(room)) {
+    const expectedRoom = `family_${familyCode}`;
+    if (room === expectedRoom || socket.data.user.isAdmin) {
       socket.to(room).emit('user_stop_typing', username);
     }
   });
@@ -210,6 +238,12 @@ io.on('connection', (socket) => {
   socket.on('call_request', ({ to }) => {
     const targetSocket = io.sockets.sockets.get(to);
     if (targetSocket) {
+      const targetFamilyCode = targetSocket.data.user.familyCode;
+      // Only allow calls within same family (or by admin)
+      if (familyCode !== targetFamilyCode && !socket.data.user.isAdmin) {
+        socket.emit('error', { message: 'Cannot call users from different families' });
+        return;
+      }
       const isTargetInCall = Array.from(userCalls.values()).includes(to);
       if (isTargetInCall) {
         socket.emit('call_busy', { to });
@@ -282,6 +316,14 @@ io.on('connection', (socket) => {
       if (!recipientId || !message.trim()) return;
 
       const recipient = onlineUsers.get(recipientId);
+      const recipientFamilyCode = recipient?.familyCode;
+
+      // Check family membership
+      if (recipientFamilyCode && familyCode !== recipientFamilyCode && !socket.data.user.isAdmin) {
+        socket.emit('error', { message: 'Cannot send messages to users from different families' });
+        return;
+      }
+
       const conversationId = [userId, recipientId].sort().join('_');
 
       // Save to DB
@@ -292,6 +334,7 @@ io.on('connection', (socket) => {
         message: message.trim(),
         clientMessageId,
         isDM: true,
+        familyCode,
       });
       await msg.save();
 
@@ -374,7 +417,7 @@ io.on('connection', (socket) => {
 
     if (socket.data.room) {
       socket.to(socket.data.room).emit('user_left', { username });
-      broadcastOnlineUsers();
+      broadcastOnlineUsers(familyCode);
     }
   });
 });

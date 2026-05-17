@@ -2,6 +2,7 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const validator = require('validator');
 const User = require('../models/User');
+const FamilyGroup = require('../models/FamilyGroup');
 
 const router = express.Router();
 
@@ -14,7 +15,16 @@ const validateUsername = (username) => {
 };
 
 const validatePassword = (password) => {
-  return password && password.length >= 8;
+  if (!password || password.length < 8) {
+    return 'Password must be at least 8 characters';
+  }
+  if (!/[A-Z]/.test(password)) {
+    return 'Password must contain at least one uppercase letter';
+  }
+  if (!/[0-9]/.test(password)) {
+    return 'Password must contain at least one number';
+  }
+  return null;
 };
 
 router.post('/register', async (req, res) => {
@@ -22,7 +32,8 @@ router.post('/register', async (req, res) => {
     const { username, email, password, inviteCode } = req.body;
 
     // Validate invite code
-    if (inviteCode !== process.env.FAMILY_INVITE_CODE) {
+    const family = await FamilyGroup.findOne({ code: inviteCode.toLowerCase() });
+    if (!family) {
       return res.status(403).json({ error: 'Invalid invite code' });
     }
 
@@ -35,8 +46,9 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ error: 'Invalid email format' });
     }
 
-    if (!validatePassword(password)) {
-      return res.status(400).json({ error: 'Password must be at least 8 characters' });
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      return res.status(400).json({ error: passwordError });
     }
 
     // Check if user already exists
@@ -53,13 +65,14 @@ router.post('/register', async (req, res) => {
       username: username.trim(),
       email: email.toLowerCase(),
       password,
+      familyCode: family.code,
     });
 
     await newUser.save();
 
     // Create JWT token
     const token = jwt.sign(
-      { id: newUser._id, username: newUser.username },
+      { id: newUser._id, username: newUser.username, familyCode: newUser.familyCode, isAdmin: newUser.isAdmin },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
@@ -94,6 +107,11 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'User not found' });
     }
 
+    // Check if user is blocked
+    if (user.isBlocked) {
+      return res.status(403).json({ error: 'User account is blocked' });
+    }
+
     // Compare password
     const passwordMatch = await user.comparePassword(password);
 
@@ -103,7 +121,7 @@ router.post('/login', async (req, res) => {
 
     // Create JWT token
     const token = jwt.sign(
-      { id: user._id, username: user.username },
+      { id: user._id, username: user.username, familyCode: user.familyCode, isAdmin: user.isAdmin },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );

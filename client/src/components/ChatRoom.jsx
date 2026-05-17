@@ -8,26 +8,30 @@ import IncomingCallAlert from './IncomingCallAlert';
 import WebRTCWarning from './WebRTCWarning';
 import DirectMessage from './DirectMessage';
 import CameraIcon from './CameraIcon';
+import AdminPanel from './AdminPanel';
+import ChangePassword from './ChangePassword';
 import { useWebRTCSupport } from '../hooks/useWebRTCSupport';
 import './ChatRoom.css';
 
-const ROOMS = ['family'];
 const MESSAGE_STORAGE_KEY = 'pendingMessages';
 
 export default function ChatRoom() {
-  const { token, userId, username, logout } = useContext(AuthContext);
+  const { token, userId, username, familyCode, isAdmin, logout } = useContext(AuthContext);
   const navigate = useNavigate();
   const webrtcSupport = useWebRTCSupport();
 
   const [socket, setSocket] = useState(null);
-  const [currentRoom, setCurrentRoom] = useState('general');
+  const [currentRoom, setCurrentRoom] = useState(() => familyCode ? `family_${familyCode}` : null);
   const [messages, setMessages] = useState([]);
   const [messageText, setMessageText] = useState('');
   const [onlineUsers, setOnlineUsers] = useState([]);
+  const [familyUsers, setFamilyUsers] = useState([]);
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
-  const [openedDMs, setOpenedDMs] = useState([]); // Array of { userId, username }
-  const [activeChat, setActiveChat] = useState('family'); // 'family', 'online', or userId of DM
+  const [openedDMs, setOpenedDMs] = useState([]);
+  const [activeChat, setActiveChat] = useState(() => familyCode ? `family_${familyCode}` : null);
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
   const [typingUsers, setTypingUsers] = useState(new Set());
   const [isConnected, isConnectedRef] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState('connecting');
@@ -39,7 +43,7 @@ export default function ChatRoom() {
   const [voiceCallTarget, setVoiceCallTarget] = useState(null);
   const [incomingVoiceCall, setIncomingVoiceCall] = useState(null);
   const [dmTarget, setDmTarget] = useState(null);
-  const [unreadCounts, setUnreadCounts] = useState({ general: 0, family: 0, random: 0 });
+  const [unreadCounts, setUnreadCounts] = useState({});
   const [dmUnreadCounts, setDmUnreadCounts] = useState({});
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
@@ -71,6 +75,27 @@ export default function ChatRoom() {
       return false;
     }
   };
+
+  // Fetch all family users (online + offline)
+  useEffect(() => {
+    if (!token) return;
+
+    const fetchFamilyUsers = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/users/family`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (response.ok) {
+          const users = await response.json();
+          setFamilyUsers(users);
+        }
+      } catch (err) {
+        console.error('Failed to fetch family users:', err);
+      }
+    };
+
+    fetchFamilyUsers();
+  }, [token]);
 
   // Initialize socket connection
   useEffect(() => {
@@ -405,19 +430,7 @@ export default function ChatRoom() {
 
   const handleTouchEnd = (e) => {
     setTouchEnd(e.changedTouches[0].clientX);
-    if (!touchStart || !e.changedTouches[0].clientX) return;
-
-    const distance = touchStart - e.changedTouches[0].clientX;
-    const minSwipe = 50;
-    const roomIndex = ROOMS.indexOf(currentRoom);
-
-    if (distance > minSwipe && roomIndex < ROOMS.length - 1) {
-      // Swiped left - next room
-      setCurrentRoom(ROOMS[roomIndex + 1]);
-    } else if (distance < -minSwipe && roomIndex > 0) {
-      // Swiped right - previous room
-      setCurrentRoom(ROOMS[roomIndex - 1]);
-    }
+    // Swipe handling disabled since we only have one room now
   };
 
   // Show warning if WebRTC not supported
@@ -493,55 +506,64 @@ export default function ChatRoom() {
             <h2 className="sidebar-title">💬 FamilyChat</h2>
             <p className="user-status">👤 {username}</p>
           </div>
-          <button onClick={handleLogout} className="logout-button" title="Logout (sign out)">
-            ↑
-          </button>
+          <div className="header-buttons">
+            <button onClick={() => setShowChangePassword(true)} className="settings-button" title="Change password">
+              🔒
+            </button>
+            {isAdmin && (
+              <button onClick={() => setShowAdminPanel(!showAdminPanel)} className="admin-button" title="Admin panel">
+                ⚙️
+              </button>
+            )}
+            <button onClick={handleLogout} className="logout-button" title="Logout (sign out)">
+              ↑
+            </button>
+          </div>
         </div>
 
         {/* Rooms */}
         <div className="rooms-section">
           <h3 className="section-title">Rooms</h3>
-          {ROOMS.map((room) => (
-            <div key={room} className="room-button-wrapper">
-              <button
-                onClick={() => setCurrentRoom(room)}
-                className={`room-button ${room === 'family' ? 'family-btn' : ''} ${currentRoom === room ? 'active' : ''}`}
-              >
-                # {room}
-              </button>
-              {unreadCounts[room] > 0 && (
-                <span className="unread-badge">{unreadCounts[room]}</span>
-              )}
-            </div>
-          ))}
+          <div className="room-button-wrapper">
+            <button
+              onClick={() => setCurrentRoom(currentRoom)}
+              className={`room-button family-btn active`}
+            >
+              # family
+            </button>
+            {unreadCounts[currentRoom] > 0 && (
+              <span className="unread-badge">{unreadCounts[currentRoom]}</span>
+            )}
+          </div>
         </div>
 
-        {/* Online Users */}
+        {/* All Family Members (Online + Offline) */}
         <div className="online-section">
-          <h3 className="section-title">Online</h3>
+          <h3 className="section-title">Members</h3>
           <div className="users-list">
-            {onlineUsers.filter((user) => user.userId !== userId).length === 0 ? (
-              <p className="empty-text">No one online</p>
+            {familyUsers.length === 0 ? (
+              <p className="empty-text">No members</p>
             ) : (
-              onlineUsers.filter((user) => user.userId !== userId).map((user) => {
-                const conversationId = [userId, user.userId].sort().join('_');
+              familyUsers.filter((user) => user._id !== userId).map((user) => {
+                const isOnline = onlineUsers.some((ou) => ou.userId === user._id);
+                const conversationId = [userId, user._id].sort().join('_');
                 const unreadDMs = dmUnreadCounts[conversationId] || 0;
                 return (
-                  <div key={user.socketId} className="user-item-container">
+                  <div key={user._id} className="user-item-container">
                     <div className="user-item">
-                      <span className="online-indicator"></span>
-                      <span className="user-name">{user.username}</span>
+                      <span className={`online-indicator ${isOnline ? 'online' : 'offline'}`}></span>
+                      <span className={`user-name ${!isOnline ? 'offline-user' : ''}`}>{user.username}</span>
                     </div>
                     <div className="call-buttons-group">
                       <div className="dm-button-wrapper">
                         <button
                           onClick={() => {
-                            const dmUser = { userId: user.userId, username: user.username };
+                            const dmUser = { userId: user._id, username: user.username };
                             setOpenedDMs((prev) => {
-                              const exists = prev.some((dm) => dm.userId === user.userId);
+                              const exists = prev.some((dm) => dm.userId === user._id);
                               return exists ? prev : [...prev, dmUser];
                             });
-                            setActiveChat(user.userId);
+                            setActiveChat(user._id);
                             setDmUnreadCounts((prev) => ({
                               ...prev,
                               [conversationId]: 0,
@@ -554,20 +576,24 @@ export default function ChatRoom() {
                         </button>
                         {unreadDMs > 0 && <span className="dm-badge">{unreadDMs}</span>}
                       </div>
-                      <button
-                        onClick={() => setVoiceCallTarget({ socketId: user.socketId, username: user.username })}
-                        className="call-user-button voice"
-                        title={`Voice call with ${user.username}`}
-                      >
-                        📞
-                      </button>
-                      <button
-                        onClick={() => setCallTarget({ socketId: user.socketId, username: user.username })}
-                        className="call-user-button video"
-                        title={`Video call with ${user.username}`}
-                      >
-                        <CameraIcon size={25} color="currentColor" />
-                      </button>
+                      {isOnline && (
+                        <>
+                          <button
+                            onClick={() => setVoiceCallTarget({ socketId: onlineUsers.find(ou => ou.userId === user._id)?.socketId, username: user.username })}
+                            className="call-user-button voice"
+                            title={`Voice call with ${user.username}`}
+                          >
+                            📞
+                          </button>
+                          <button
+                            onClick={() => setCallTarget({ socketId: onlineUsers.find(ou => ou.userId === user._id)?.socketId, username: user.username })}
+                            className="call-user-button video"
+                            title={`Video call with ${user.username}`}
+                          >
+                            <CameraIcon size={25} color="currentColor" />
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 );
@@ -577,22 +603,29 @@ export default function ChatRoom() {
         </div>
       </div>
 
+      {/* Admin Panel */}
+      {showAdminPanel && isAdmin && (
+        <AdminPanel onClose={() => setShowAdminPanel(false)} token={token} />
+      )}
+
+      {/* Change Password Modal */}
+      {showChangePassword && (
+        <ChangePassword token={token} onClose={() => setShowChangePassword(false)} />
+      )}
+
       {/* Main Chat Area */}
       <div className="chat-main" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
         {/* Mobile Rooms Bar with DMs */}
         <div className="mobile-rooms-bar">
           <div className="rooms-label">CHATS</div>
           <div className="rooms-buttons">
-            {/* Rooms */}
-            {ROOMS.map((room) => (
-              <button
-                key={room}
-                onClick={() => setActiveChat(room)}
-                className={`room-tab ${room === 'family' ? 'family-btn' : ''} ${activeChat === room ? 'active' : ''}`}
-              >
-                # {room}
-              </button>
-            ))}
+            {/* Family Room */}
+            <button
+              onClick={() => setActiveChat(currentRoom)}
+              className={`room-tab family-btn ${activeChat === currentRoom ? 'active' : ''}`}
+            >
+              # family
+            </button>
 
             {/* Opened DMs */}
             {openedDMs.map((dm) => {
