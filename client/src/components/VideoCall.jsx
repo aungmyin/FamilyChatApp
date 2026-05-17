@@ -8,39 +8,12 @@ const VIDEO_CONSTRAINTS = {
   high: { width: 1280, height: 720, frameRate: 30 },
 };
 
-const ICE_SERVERS = [
-  // Google STUN servers (most reliable)
+const DEFAULT_ICE_SERVERS = [
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
   { urls: 'stun:stun2.l.google.com:19302' },
   { urls: 'stun:stun3.l.google.com:19302' },
   { urls: 'stun:stun4.l.google.com:19302' },
-  // Backup STUN servers
-  { urls: 'stun:stunserver.stunprotocol.org:3478' },
-  { urls: 'stun:stun.stunprotocol.org:3478' },
-  { urls: 'stun:stun.l.google.com:3478' },
-  { urls: 'stun:stun.ekiga.net' },
-  // TURN relay for restrictive mobile networks (fallback)
-  {
-    urls: ['turn:openrelay.metered.ca:80?transport=udp', 'turn:openrelay.metered.ca:80?transport=tcp'],
-    username: 'openrelayproject',
-    credential: 'openrelayproject',
-  },
-  {
-    urls: ['turn:openrelay.metered.ca:443?transport=tcp'],
-    username: 'openrelayproject',
-    credential: 'openrelayproject',
-  },
-  {
-    urls: 'turn:turnserver.world:3478',
-    username: 'turnserver',
-    credential: 'turnserver',
-  },
-  {
-    urls: 'turn:turnserver.world:3479',
-    username: 'turnserver',
-    credential: 'turnserver',
-  },
 ];
 
 export default function VideoCall({ socket, targetSocketId, targetUsername, onClose, incomingCall }) {
@@ -53,6 +26,7 @@ export default function VideoCall({ socket, targetSocketId, targetUsername, onCl
   const [iceState, setIceState] = useState('new');
   const [isSpeakerMuted, setIsSpeakerMuted] = useState(false);
   const [volume, setVolume] = useState(100);
+  const [iceServers, setIceServers] = useState(DEFAULT_ICE_SERVERS);
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
   const peerRef = useRef(null);
@@ -67,7 +41,7 @@ export default function VideoCall({ socket, targetSocketId, targetUsername, onCl
   };
 
   const createPeerConnection = (recipientId) => {
-    const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+    const pc = new RTCPeerConnection({ iceServers });
     peerRef.current = pc;
 
     pc.ontrack = (e) => {
@@ -277,6 +251,27 @@ export default function VideoCall({ socket, targetSocketId, targetUsername, onCl
     setCallState('idle');
     onClose?.();
   };
+
+  useEffect(() => {
+    const fetchTurnCredentials = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/turn/credentials`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          if (data.iceServers && data.iceServers.length > 0) {
+            setIceServers([...DEFAULT_ICE_SERVERS, ...data.iceServers]);
+            console.log('TURN credentials loaded from Metered.ca');
+          }
+        }
+      } catch (error) {
+        console.log('Could not load TURN credentials, using STUN only:', error.message);
+      }
+    };
+    fetchTurnCredentials();
+  }, []);
 
   useEffect(() => {
     if (!socket) return;

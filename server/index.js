@@ -11,6 +11,7 @@ const jwt = require('jsonwebtoken');
 const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
 const userRoutes = require('./routes/users');
+const turnRoutes = require('./routes/turn');
 const authMiddleware = require('./middleware/authMiddleware');
 const requireAdmin = require('./middleware/requireAdmin');
 const Message = require('./models/Message');
@@ -61,6 +62,9 @@ app.use('/api/admin', authMiddleware, requireAdmin, adminRoutes);
 
 // User routes
 app.use('/api/users', authMiddleware, userRoutes);
+
+// TURN credential routes
+app.use('/api/turn', authMiddleware, turnRoutes);
 
 // Socket.IO authentication middleware
 io.use((socket, next) => {
