@@ -54,11 +54,6 @@ mongoose.connect(process.env.MONGODB_URI).then(() => {
   console.error('MongoDB connection error:', err);
 });
 
-// Serve manifest.json explicitly (for PWA)
-app.get('/manifest.json', (req, res) => {
-  res.sendFile(path.join(__dirname, '../client/public/manifest.json'));
-});
-
 // Health check - for API
 app.get('/api/health', (req, res) => {
   res.send('FamilyChat server running ✅');
