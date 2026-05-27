@@ -7,6 +7,7 @@ const mongoose = require('mongoose');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const jwt = require('jsonwebtoken');
+const path = require('path');
 
 const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
@@ -35,6 +36,10 @@ app.use(helmet());
 app.use(cors());
 app.use(express.json());
 
+// Serve static files from client's dist (built app)
+const clientDistPath = path.join(__dirname, '../client/dist');
+app.use(express.static(clientDistPath));
+
 // Rate limiting for auth endpoints
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -49,8 +54,13 @@ mongoose.connect(process.env.MONGODB_URI).then(() => {
   console.error('MongoDB connection error:', err);
 });
 
-// Health check
-app.get('/', (req, res) => {
+// Serve manifest.json explicitly (for PWA)
+app.get('/manifest.json', (req, res) => {
+  res.sendFile(path.join(__dirname, '../client/public/manifest.json'));
+});
+
+// Health check - for API
+app.get('/api/health', (req, res) => {
   res.send('FamilyChat server running ✅');
 });
 
@@ -65,6 +75,11 @@ app.use('/api/users', authMiddleware, userRoutes);
 
 // TURN credential routes
 app.use('/api/turn', authMiddleware, turnRoutes);
+
+// SPA fallback - serve index.html for all non-API routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(clientDistPath, 'index.html'));
+});
 
 // Socket.IO authentication middleware
 io.use((socket, next) => {
